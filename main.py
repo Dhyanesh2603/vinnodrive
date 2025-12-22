@@ -229,12 +229,14 @@ async def upload(request: Request, folder: str = Form("/"), files: list[UploadFi
 
             db = SessionLocal()
             try:
-                existing_original = db.query(UserFile).filter(
-                    UserFile.filehash == file_hash, 
+                # Check if THIS USER already has this file (per-user deduplication)
+                existing_user_file = db.query(UserFile).filter(
+                    UserFile.filehash == file_hash,
+                    UserFile.username == username,
                     UserFile.is_reference == 0
                 ).first()
                 
-                if not existing_original:
+                if not existing_user_file:
                     new_original_size += file_size
             finally:
                 db.close()
@@ -253,18 +255,23 @@ async def upload(request: Request, folder: str = Form("/"), files: list[UploadFi
         db = SessionLocal()
         try:
             for temp_path, filename, file_hash, file_size in temp_files:
-                existing = db.query(UserFile).filter(
-                    UserFile.filehash == file_hash, 
+                # Check if THIS USER already uploaded this exact file
+                existing_user_file = db.query(UserFile).filter(
+                    UserFile.filehash == file_hash,
+                    UserFile.username == username,
                     UserFile.is_reference == 0
                 ).first()
                 
-                if existing:
+                if existing_user_file:
+                    # User is re-uploading their own duplicate
                     os.remove(temp_path)
-                    filepath = existing.filepath
-                    message = "Duplicate (reference stored)"
+                    filepath = existing_user_file.filepath
+                    message = "Duplicate (you already uploaded this file)"
                     is_ref = 1
                 else:
-                    final_path = os.path.join(UPLOAD_FOLDER, file_hash)
+                    # This is a new file for this user
+                    # Store it with a unique path per user
+                    final_path = os.path.join(UPLOAD_FOLDER, f"{username}_{file_hash}")
                     os.rename(temp_path, final_path)
                     filepath = final_path
                     message = "Uploaded successfully"
@@ -461,12 +468,17 @@ async def delete(request: Request, file_id: int = Form(...)):
         if not file:
             raise HTTPException(404)
         
-        ref_count = db.query(UserFile).filter(UserFile.filehash == file.filehash).count()
+        # Count how many times THIS USER has this file hash
+        user_ref_count = db.query(UserFile).filter(
+            UserFile.filehash == file.filehash,
+            UserFile.username == username
+        ).count()
+        
         db.delete(file)
         db.commit()
         
-        # Only delete physical file if no other references exist
-        if ref_count == 1 and file.filepath and os.path.exists(file.filepath):
+        # Only delete physical file if this was the user's last reference to it
+        if user_ref_count == 1 and file.filepath and os.path.exists(file.filepath):
             os.remove(file.filepath)
     finally:
         db.close()
