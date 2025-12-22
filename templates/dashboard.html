@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - {{ username }}</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        body { background: #f0f2f5; font-family: Arial; margin: 0; }
+        header { background: #4a90e2; color: white; padding: 15px; text-align: center; }
+        .container { max-width: 1000px; margin: 30px auto; background: white; padding: 20px; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
+        th { background: #f5f5f5; }
+        .btn { padding: 8px 12px; border: none; border-radius: 4px; color: white; cursor: pointer; text-decoration: none; display: inline-block; }
+        .download { background: #4CAF50; }
+        .delete { background: #e74c3c; }
+        .logout { background: #95a5a6; float: right; }
+        .dropzone { border: 2px dashed #4a90e2; padding: 40px; text-align: center; border-radius: 8px; margin: 20px 0; }
+        .dropzone.dragover { background: #e6f0ff; }
+        progress { width: 100%; height: 10px; margin: 10px 0; }
+        .stats-card { background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>VinnoDrive - {{ username }}'s Dashboard</h1>
+        <a href="/logout" class="btn logout">Logout</a>
+    </header>
+
+    <div class="container">
+        <!-- Full Storage Statistics -->
+        <div class="stats-card">
+            <h3>Storage Statistics</h3>
+            <p><strong>Actual Storage Used (after deduplication):</strong> {{ (actual_used / 1048576)|round(2) }} MB</p>
+            <p><strong>Original Uploaded Size:</strong> {{ (original_uploaded / 1048576)|round(2) }} MB</p>
+            <p><strong>Total Space Saved:</strong> {{ (saved_space / 1048576)|round(2) }} MB ({{ savings_percent|round(1) }}% savings)</p>
+        </div>
+
+        <!-- Upload Section -->
+        <div class="dropzone" id="dropzone">Drag & Drop Files Here</div>
+        <div style="text-align:center;">
+            <button id="chooseBtn" class="btn" style="background:#3498db;">Choose Files</button>
+            <button id="uploadBtn" class="btn" style="background:#27ae60;">Upload</button>
+        </div>
+        <input type="file" id="fileInput" multiple style="display:none;">
+        <progress id="progressBar" value="0" max="100"></progress>
+        <div id="messages"></div>
+
+        <!-- Files Table -->
+        <table>
+            <tr>
+                <th>File Name</th>
+                <th>Size</th>
+                <th>Status</th>
+                <th>Uploader</th>
+                <th>Upload Date</th>
+                <th>Actions</th>
+            </tr>
+            {% for file in files %}
+            <tr>
+                <td>{{ file.filename }}</td>
+                <td>{{ (file.size / 1024)|round(2) }} KB</td>
+                <td>{% if file.is_reference == 1 %}Duplicate{% else %}Original{% endif %}</td>
+                <td>{{ username }}</td>
+                <td>{{ file.upload_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>
+                    <a href="/download/{{ file.id }}" class="btn download">Download</a>
+                    
+                    <!-- Delete with Confirmation on Button Click -->
+                    <form action="/delete" method="post" style="display:inline;">
+                        <input type="hidden" name="file_id" value="{{ file.id }}">
+                        <button type="submit" class="btn delete" onclick="return confirm('Are you sure you want to delete \'{{ file.filename }}\'?\nThis action cannot be undone.');">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <script>
+        const dropzone = document.getElementById("dropzone");
+        const fileInput = document.getElementById("fileInput");
+        const chooseBtn = document.getElementById("chooseBtn");
+        const uploadBtn = document.getElementById("uploadBtn");
+        const progressBar = document.getElementById("progressBar");
+        const messages = document.getElementById("messages");
+
+        let filesToUpload = [];
+
+        chooseBtn.onclick = () => fileInput.click();
+
+        dropzone.addEventListener("dragover", e => { e.preventDefault(); dropzone.classList.add("dragover"); });
+        dropzone.addEventListener("dragleave", () => dropzone.classList.remove("dragover"));
+        dropzone.addEventListener("drop", e => {
+            e.preventDefault();
+            dropzone.classList.remove("dragover");
+            filesToUpload = Array.from(e.dataTransfer.files);
+            messages.innerHTML = `<p>${filesToUpload.length} file(s) selected</p>`;
+        });
+
+        fileInput.addEventListener("change", () => {
+            filesToUpload = Array.from(fileInput.files);
+            messages.innerHTML = `<p>${filesToUpload.length} file(s) selected</p>`;
+        });
+
+        uploadBtn.addEventListener("click", () => {
+            if (filesToUpload.length === 0) return alert("Select files first");
+
+            const formData = new FormData();
+            filesToUpload.forEach(file => formData.append("files", file));
+
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", "/upload", true);
+            xhr.upload.onprogress = e => {
+                if (e.lengthComputable) progressBar.value = (e.loaded / e.total) * 100;
+            };
+            xhr.onload = () => {
+                const res = JSON.parse(xhr.responseText);
+                messages.innerHTML = "<p style='color:green;'>Upload done!</p>";
+                res.results.forEach(r => messages.innerHTML += `<p>${r.filename}: ${r.message}</p>`);
+                setTimeout(() => location.reload(), 1500);
+            };
+            xhr.send(formData);
+        });
+    </script>
+</body>
+</html>
