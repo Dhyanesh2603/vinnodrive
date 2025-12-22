@@ -5,25 +5,29 @@
     <title>Dashboard - {{ username }}</title>
     <link rel="stylesheet" href="/static/style.css">
     <style>
-        body { background: #f0f2f5; font-family: Arial; margin: 0; }
-        header { background: #4a90e2; color: white; padding: 15px; text-align: center; }
-        .container { max-width: 1100px; margin: 30px auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        body { background: #f0f2f5; font-family: Arial, sans-serif; margin: 0; }
+        header { background: #4a90e2; color: white; padding: 20px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .container { max-width: 1200px; margin: 30px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; vertical-align: middle; }
-        th { background: #f5f5f5; }
-        .btn { padding: 8px 12px; border: none; border-radius: 4px; color: white; cursor: pointer; text-decoration: none; display: inline-block; margin: 2px; font-size: 14px; }
-        .download { background: #4CAF50; }
+        th, td { padding: 14px; border-bottom: 1px solid #eee; text-align: left; vertical-align: middle; }
+        th { background: #f8f9fa; font-weight: 600; }
+        .btn { padding: 10px 16px; border: none; border-radius: 6px; color: white; cursor: pointer; text-decoration: none; display: inline-block; margin: 4px 2px; font-size: 14px; transition: 0.3s; }
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .download { background: #27ae60; }
         .delete { background: #e74c3c; }
         .share-btn { background: #3498db; }
+        .user-share-btn { background: #9b59b6; font-size: 13px; padding: 8px 12px; }
         .logout { background: #95a5a6; float: right; }
-        .dropzone { border: 2px dashed #4a90e2; padding: 40px; text-align: center; border-radius: 8px; margin: 20px 0; background: #f9fbff; }
-        .dropzone.dragover { background: #e6f0ff; border-color: #2980b9; }
-        progress { width: 100%; height: 20px; margin: 10px 0; border-radius: 4px; }
-        .stats-card { background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
-        .public-link { font-size: 12px; word-break: break-all; color: #4a90e2; }
-        .folder-header { background: #e8f4fd; font-weight: bold; padding: 15px; margin: 30px 0 10px 0; border-left: 5px solid #4a90e2; border-radius: 4px; font-size: 18px; }
-        select, input[type=text] { padding: 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 14px; }
-        .create-folder { margin-bottom: 20px; }
+        .dropzone { border: 3px dashed #4a90e2; padding: 50px; text-align: center; border-radius: 10px; margin: 30px 0; background: #f9fbff; transition: 0.3s; font-size: 18px; color: #666; }
+        .dropzone.dragover { background: #e3f2fd; border-color: #2980b9; }
+        progress { width: 100%; height: 24px; margin: 15px 0; border-radius: 6px; }
+        .stats-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 10px; margin-bottom: 30px; }
+        .stats-card h3 { margin-top: 0; }
+        .public-link { font-size: 13px; word-break: break-all; color: #3498db; font-weight: bold; }
+        .folder-header { background: #e8f4fd; font-weight: bold; padding: 18px; margin: 40px 0 15px 0; border-left: 6px solid #4a90e2; border-radius: 6px; font-size: 20px; }
+        select, input[type=text] { padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 15px; }
+        .create-folder { margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; }
+        .shared-section { margin-top: 50px; padding: 25px; background: #fffacd; border-radius: 10px; border: 2px dashed #f39c12; }
     </style>
 </head>
 <body>
@@ -36,45 +40,46 @@
         <div class="stats-card">
             <h3>Storage Statistics</h3>
             <p><strong>Actual Storage Used:</strong> {{ (actual_used / 1048576)|round(2) }} / 10 MB</p>
-            <progress value="{{ actual_used }}" max="{{ quota_bytes }}" style="width:100%;"></progress>
+            <progress value="{{ actual_used }}" max="{{ quota_bytes }}" style="width:100%; height:30px;"></progress>
             <p><strong>Original Uploaded Size:</strong> {{ (original_uploaded / 1048576)|round(2) }} MB</p>
             <p><strong>Total Space Saved:</strong> {{ (saved_space / 1048576)|round(2) }} MB ({{ savings_percent|round(1) }}% savings)</p>
         </div>
 
         <div class="create-folder">
-            <form action="/create_folder" method="post" style="display:inline;">
-                <input type="text" name="folder_name" placeholder="e.g. photos/vacation or documents/work" required style="width:400px;">
+            <h3>Create New Folder</h3>
+            <form action="/create_folder" method="post">
+                <input type="text" name="folder_name" placeholder="e.g. photos/vacation, documents/work, music/2025" required style="width:500px;">
                 <button type="submit" class="btn" style="background:#9b59b6;">Create Folder</button>
             </form>
         </div>
 
-        <div style="margin-bottom: 30px;">
-            <div class="dropzone" id="dropzone">Drag & Drop Files Here or Click to Select</div>
-            <div style="text-align:center; margin:15px 0;">
-                <button type="button" id="chooseBtn" class="btn" style="background:#3498db;">Choose Files</button>
-                <button type="button" id="uploadBtn" class="btn" style="background:#27ae60;">Upload</button>
-                
-                <select id="folderSelect" style="margin-left:15px;">
+        <div style="margin-bottom: 40px;">
+            <div class="dropzone" id="dropzone">📁 Drag & Drop Files Here</div>
+            <div style="text-align:center; margin:20px 0;">
+                <button type="button" id="chooseBtn" class="btn" style="background:#3498db;">📂 Choose Files</button>
+                <button type="button" id="uploadBtn" class="btn" style="background:#27ae60;">⬆️ Upload Files</button>
+                <label style="margin-left:20px; font-weight: bold;">Upload to folder:</label>
+                <select id="folderSelect" style="margin-left:10px;">
                     <option value="/">Root (/)</option>
                     {% set unique_folders = [] %}
                     {% for file in files %}
-                        {% if file.folder != "/" and file.filename.startswith(".folder_marker") %}
-                            {% set folder_path = file.folder %}
+                        {% if file.filename.startswith(".folder_marker") and file.folder != "/" %}
+                            {% set folder_path = file.folder.rstrip("/") %}
                             {% if folder_path not in unique_folders %}
                                 {% set _ = unique_folders.append(folder_path) %}
-                                <option value="{{ folder_path }}">{{ folder_path }}</option>
+                                <option value="{{ file.folder }}">{{ folder_path }}</option>
                             {% endif %}
                         {% endif %}
                     {% endfor %}
                 </select>
             </div>
             <input type="file" id="fileInput" multiple style="display:none;">
-            <progress id="progressBar" value="0" max="100"></progress>
-            <div id="messages" style="margin-top:10px; min-height:30px;"></div>
+            <progress id="progressBar" value="0" max="100" style="display:none;"></progress>
+            <div id="messages" style="margin-top:15px; min-height:40px; font-weight:bold;"></div>
         </div>
 
         {% set folders = {} %}
-        {% for file in files if file.filename != ".folder_marker" %}
+        {% for file in files if not file.filename.startswith(".folder_marker") %}
             {% if file.folder not in folders %}
                 {% set _ = folders.update({file.folder: []}) %}
             {% endif %}
@@ -82,11 +87,11 @@
         {% endfor %}
 
         {% if folders|length == 0 %}
-            <p>No files uploaded yet. Start by uploading some!</p>
+            <p style="text-align:center; font-size:18px; color:#777;">No files uploaded yet. Create a folder or upload some files to get started!</p>
         {% else %}
             {% for folder_path, folder_files in folders|dictsort %}
                 <div class="folder-header">
-                    📁 {{ folder_path if folder_path != "/" else "Root Folder (/)" }} ({{ folder_files|length }} file{{ "s" if folder_files|length != 1 else "" }})
+                    📁 {{ folder_path.rstrip("/") if folder_path != "/" else "Root Folder (/)" }} ({{ folder_files|length }} file{{ "s" if folder_files|length != 1 else "" }})
                 </div>
                 <table>
                     <tr>
@@ -96,16 +101,23 @@
                         <th>Upload Date</th>
                         <th>Downloads</th>
                         <th>Public Link</th>
-                        <th>Share</th>
+                        <th>Share with User</th>
+                        <th>Public Share</th>
                         <th>Actions</th>
                     </tr>
                     {% for file in folder_files %}
                     <tr>
                         <td><strong>{{ file.filename }}</strong></td>
                         <td>{{ (file.size / 1024)|round(2) }} KB</td>
-                        <td>{% if file.is_reference == 1 %}<span style="color:#f39c12;">Duplicate</span>{% else %}<span style="color:#27ae60;">Original</span>{% endif %}</td>
-                        <td>{{ file.upload_date.strftime('%Y-%m-%d %H:%M') }}</td>
-                        <td>{{ file.download_count }}</td>
+                        <td>
+                            {% if file.is_reference == 1 %}
+                                <span style="color:#f39c12; font-weight:bold;">Duplicate</span>
+                            {% else %}
+                                <span style="color:#27ae60; font-weight:bold;">Original</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ file.upload_date.strftime('%b %d, %Y %H:%M') }}</td>
+                        <td><strong>{{ file.download_count }}</strong></td>
                         <td>
                             {% if file.is_public == 1 %}
                                 <a href="/public/{{ file.share_token }}" target="_blank" class="public-link">
@@ -114,6 +126,14 @@
                             {% else %}
                                 <span style="color:#999;">Private</span>
                             {% endif %}
+                        </td>
+                        <td>
+                            <form action="/share_with_user" method="post" style="display:inline;">
+                                <input type="hidden" name="file_id" value="{{ file.id }}">
+                                <input type="text" name="target_username" placeholder="username" required style="width:100px; padding:6px; font-size:13px;">
+                                <button type="submit" class="btn user-share-btn">Share</button>
+                            </form>
+                        </td>
                         <td>
                             <form action="/toggle_share" method="post" style="display:inline;">
                                 <input type="hidden" name="file_id" value="{{ file.id }}">
@@ -126,13 +146,39 @@
                             <a href="/download/{{ file.id }}" class="btn download">Download</a>
                             <form action="/delete" method="post" style="display:inline;">
                                 <input type="hidden" name="file_id" value="{{ file.id }}">
-                                <button type="submit" class="btn delete" onclick="return confirm('Delete {{ file.filename }}?');">Delete</button>
+                                <button type="submit" class="btn delete" onclick="return confirm('Permanently delete {{ file.filename }}?');">Delete</button>
                             </form>
                         </td>
                     </tr>
                     {% endfor %}
                 </table>
             {% endfor %}
+        {% endif %}
+
+        {% if shared_files|length > 0 %}
+            <div class="shared-section">
+                <h2 style="margin-top:0;">📬 Files Shared with Me ({{ shared_files|length }})</h2>
+                <table>
+                    <tr>
+                        <th>File Name</th>
+                        <th>Size</th>
+                        <th>Shared By</th>
+                        <th>Upload Date</th>
+                        <th>Actions</th>
+                    </tr>
+                    {% for file in shared_files %}
+                    <tr style="background:#fffef0;">
+                        <td><strong>{{ file.filename }}</strong> (shared)</td>
+                        <td>{{ (file.size / 1024)|round(2) }} KB</td>
+                        <td>{{ file.username }}</td>
+                        <td>{{ file.upload_date.strftime('%b %d, %Y %H:%M') }}</td>
+                        <td>
+                            <a href="/download/{{ file.id }}" class="btn download">Download</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
         {% endif %}
     </div>
 
@@ -147,10 +193,19 @@
 
         let filesToUpload = [];
 
+        // Choose files button
         chooseBtn.onclick = () => fileInput.click();
 
-        dropzone.addEventListener("dragover", e => { e.preventDefault(); dropzone.classList.add("dragover"); });
-        dropzone.addEventListener("dragleave", () => dropzone.classList.remove("dragover"));
+        // Drag and drop handlers
+        dropzone.addEventListener("dragover", e => { 
+            e.preventDefault(); 
+            dropzone.classList.add("dragover"); 
+        });
+        
+        dropzone.addEventListener("dragleave", () => {
+            dropzone.classList.remove("dragover");
+        });
+        
         dropzone.addEventListener("drop", e => {
             e.preventDefault();
             dropzone.classList.remove("dragover");
@@ -158,6 +213,7 @@
             updateMessage();
         });
 
+        // File input change handler
         fileInput.addEventListener("change", () => {
             filesToUpload = Array.from(fileInput.files);
             updateMessage();
@@ -165,15 +221,20 @@
 
         function updateMessage() {
             if (filesToUpload.length > 0) {
-                messages.innerHTML = `<p><strong>${filesToUpload.length}</strong> file${filesToUpload.length > 1 ? 's' : ''} selected → uploading to <strong>${folderSelect.value || '/'}</strong></p>`;
+                const folderName = folderSelect.options[folderSelect.selectedIndex].text;
+                messages.innerHTML = `<p style="color:#2c3e50;"><strong>${filesToUpload.length}</strong> file${filesToUpload.length > 1 ? 's' : ''} selected → Ready to upload to <strong>${folderName}</strong></p>`;
             } else {
                 messages.innerHTML = "";
             }
         }
 
-        uploadBtn.addEventListener("click", () => {
+        // Update message when folder selection changes
+        folderSelect.addEventListener("change", updateMessage);
+
+        // Upload handler
+        uploadBtn.addEventListener("click", async () => {
             if (filesToUpload.length === 0) {
-                alert("Please select files first!");
+                alert("Please select at least one file!");
                 return;
             }
 
@@ -181,45 +242,63 @@
             filesToUpload.forEach(file => formData.append("files", file));
             formData.append("folder", folderSelect.value);
 
-            const xhr = new XMLHttpRequest();
-            xhr.open("POST", "/upload", true);
+            try {
+                progressBar.style.display = "block";
+                progressBar.value = 0;
+                messages.innerHTML = `<p style="color:#2c3e50;">Uploading ${filesToUpload.length} file${filesToUpload.length > 1 ? 's' : ''}...</p>`;
+                uploadBtn.disabled = true;
 
-            xhr.upload.onprogress = e => {
-                if (e.lengthComputable) {
-                    progressBar.value = (e.loaded / e.total) * 100;
-                }
-            };
+                const response = await fetch("/upload", {
+                    method: "POST",
+                    body: formData
+                });
 
-            xhr.onload = () => {
-                if (xhr.status !== 200) {
-                    messages.innerHTML = `<p style="color:red; font-weight:bold;">Upload failed: Server error</p>`;
-                    progressBar.value = 0;
+                progressBar.value = 100;
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    messages.innerHTML = `<p style="color:red; font-weight:bold;">Upload failed: ${errorData.error || 'Server error'}</p>`;
                     return;
                 }
 
-                try {
-                    const res = JSON.parse(xhr.responseText);
-
-                    if (res.error) {
-                        messages.innerHTML = `<p style="color:red; font-weight:bold;">Error: ${res.error}</p>`;
-                        progressBar.value = 0;
-                        return;
-                    }
-
-                    messages.innerHTML = `<p style="color:green; font-weight:bold;">Upload successful!</p>`;
-                    res.results.forEach(r => {
-                        messages.innerHTML += `<p>${r.filename}: <span style="color:green;">${r.message}</span></p>`;
-                    });
-                    setTimeout(() => location.reload(), 2000);
-
-                } catch (e) {
-                    messages.innerHTML = `<p style="color:red;">Unexpected response from server.</p>`;
+                const result = await response.json();
+                
+                if (result.error) {
+                    messages.innerHTML = `<p style="color:red; font-weight:bold;">Error: ${result.error}</p>`;
+                    return;
                 }
-            };
 
-            progressBar.value = 0;
-            messages.innerHTML = `<p>Uploading ${filesToUpload.length} file${filesToUpload.length > 1 ? 's' : ''} to <strong>${folderSelect.value || '/'}</strong>...</p>`;
-            xhr.send(formData);
+                // Success
+                messages.innerHTML = `<p style="color:green; font-weight:bold;">✓ All files uploaded successfully!</p>`;
+                result.results.forEach(r => {
+                    messages.innerHTML += `<p style="margin-left:20px;">• ${r.filename}: <span style="color:green;">${r.message}</span></p>`;
+                });
+
+                // Reset form
+                filesToUpload = [];
+                fileInput.value = "";
+                
+                // Reload page after 2 seconds
+                setTimeout(() => location.reload(), 2000);
+
+            } catch (error) {
+                messages.innerHTML = `<p style="color:red; font-weight:bold;">Upload failed: ${error.message}</p>`;
+                console.error("Upload error:", error);
+            } finally {
+                progressBar.style.display = "none";
+                uploadBtn.disabled = false;
+            }
+        });
+
+        // Auto-logout on close (optional - you might want to remove this)
+        window.addEventListener("beforeunload", () => {
+            navigator.sendBeacon("/logout");
+        });
+        
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "hidden") {
+                navigator.sendBeacon("/logout");
+            }
         });
     </script>
 </body>
