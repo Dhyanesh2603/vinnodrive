@@ -1,0 +1,52 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #f0f2f5;
+}
+
+header {
+    background: #4a90e2;
+    color: white;
+    padding: 15px;
+    text-align: center;
+}
+
+.container {
+    max-width: 800px;
+    background: white;
+    margin: 30px auto;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+button, .btn {
+    background: #4a90e2;
+    color: white;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.upload-more {
+    display: inline-block;
+    margin-top: 10px;
+}
+
+ul.file-list {
+    list-style: none;
+    padding: 0;
+}
+
+ul.file-list li {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+ul.file-list li.duplicate {
+    background: #fff3cd;
+}
+
+progress {
+    width: 100%;
+    margin-top: 10px;
+}
