@@ -19,6 +19,7 @@ UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 USER_QUOTA_BYTES = 10 * 1024 * 1024  # 10 MB limit
 SECRET_KEY = "change_this_to_a_strong_random_string_in_production!!!"
+SESSION_TIMEOUT_MINUTES = 20  # Auto-logout after 20 minutes of inactivity
 
 # Rate limiting
 last_upload_time = {}
@@ -117,6 +118,31 @@ def normalize_folder_path(folder: str) -> str:
         folder = folder + "/"
     return folder
 
+def check_session_timeout(request: Request):
+    """Check if session has timed out due to inactivity"""
+    if "username" not in request.session:
+        return True
+    
+    last_activity = request.session.get("last_activity")
+    if not last_activity:
+        # First time, set last activity
+        request.session["last_activity"] = datetime.utcnow().isoformat()
+        return False
+    
+    # Parse last activity time
+    last_activity_time = datetime.fromisoformat(last_activity)
+    time_elapsed = datetime.utcnow() - last_activity_time
+    
+    # Check if more than SESSION_TIMEOUT_MINUTES have passed
+    if time_elapsed.total_seconds() > (SESSION_TIMEOUT_MINUTES * 60):
+        # Session expired
+        request.session.clear()
+        return True
+    
+    # Update last activity time
+    request.session["last_activity"] = datetime.utcnow().isoformat()
+    return False
+
 # === ROUTES ===
 @app.get("/")
 async def root(request: Request):
@@ -155,7 +181,7 @@ async def login(request: Request, username: str = Form(...), password: str = For
 @app.get("/dashboard")
 async def dashboard(request: Request):
     username = request.session.get("username")
-    if not username:
+    if not username or check_session_timeout(request):
         return RedirectResponse("/")
     
     db = SessionLocal()
@@ -186,14 +212,15 @@ async def dashboard(request: Request):
         "saved_space": saved_space,
         "savings_percent": savings_percent,
         "quota_bytes": USER_QUOTA_BYTES,
-        "quota_mb": 10
+        "quota_mb": 10,
+        "session_timeout_minutes": SESSION_TIMEOUT_MINUTES
     })
 
 @app.post("/upload")
 async def upload(request: Request, folder: str = Form("/"), files: list[UploadFile] = File(...)):
     username = request.session.get("username")
-    if not username:
-        return JSONResponse({"results": [], "error": "Not authenticated"}, status_code=401)
+    if not username or check_session_timeout(request):
+        return JSONResponse({"results": [], "error": "Session expired. Please login again."}, status_code=401)
 
     if not files or all(not f.filename for f in files):
         return JSONResponse({"results": [], "error": "No files selected"}, status_code=400)
@@ -306,7 +333,7 @@ async def upload(request: Request, folder: str = Form("/"), files: list[UploadFi
 @app.get("/download/{file_id}")
 async def download(file_id: int, request: Request):
     username = request.session.get("username")
-    if not username:
+    if not username or check_session_timeout(request):
         return RedirectResponse("/")
     
     db = SessionLocal()
@@ -356,7 +383,7 @@ async def public_download(token: str):
 @app.post("/toggle_share")
 async def toggle_share(request: Request, file_id: int = Form(...)):
     username = request.session.get("username")
-    if not username:
+    if not username or check_session_timeout(request):
         return RedirectResponse("/")
     
     db = SessionLocal()
@@ -375,7 +402,7 @@ async def toggle_share(request: Request, file_id: int = Form(...)):
 @app.post("/share_with_user")
 async def share_with_user(request: Request, file_id: int = Form(...), target_username: str = Form(...)):
     username = request.session.get("username")
-    if not username:
+    if not username or check_session_timeout(request):
         return RedirectResponse("/")
     
     db = SessionLocal()
@@ -410,7 +437,7 @@ async def share_with_user(request: Request, file_id: int = Form(...), target_use
 @app.post("/create_folder")
 async def create_folder(request: Request, folder_name: str = Form(...)):
     username = request.session.get("username")
-    if not username:
+    if not username or check_session_timeout(request):
         return RedirectResponse("/")
     
     # Clean and normalize folder name
@@ -459,7 +486,7 @@ async def create_folder(request: Request, folder_name: str = Form(...)):
 @app.post("/delete")
 async def delete(request: Request, file_id: int = Form(...)):
     username = request.session.get("username")
-    if not username:
+    if not username or check_session_timeout(request):
         return RedirectResponse("/")
     
     db = SessionLocal()
@@ -486,6 +513,12 @@ async def delete(request: Request, file_id: int = Form(...)):
     return RedirectResponse("/dashboard", status_code=303)
 
 @app.get("/logout")
-async def logout(request: Request):
-    request.session.pop("username", None)
+async def logout_get(request: Request):
+    request.session.clear()
     return RedirectResponse("/")
+
+@app.post("/logout")
+async def logout_post(request: Request):
+    request.session.clear()
+    return JSONResponse({"status": "logged out"})
+    
