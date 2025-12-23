@@ -192,9 +192,66 @@
         const folderSelect = document.getElementById("folderSelect");
 
         let filesToUpload = [];
+        let inactivityTimer;
+        const INACTIVITY_TIMEOUT = {{ session_timeout_minutes }} * 60 * 1000; // Convert minutes to milliseconds
+        const WARNING_TIME = 2 * 60 * 1000; // Show warning 2 minutes before timeout
 
         // Choose files button
         chooseBtn.onclick = () => fileInput.click();
+
+        // Activity tracking - reset timer on any user interaction
+        function resetInactivityTimer() {
+            clearTimeout(inactivityTimer);
+            
+            // Set warning timer (2 minutes before actual logout)
+            setTimeout(() => {
+                if (confirm('You will be logged out in 2 minutes due to inactivity. Click OK to stay logged in.')) {
+                    resetInactivityTimer(); // User clicked OK, reset timer
+                }
+            }, INACTIVITY_TIMEOUT - WARNING_TIME);
+            
+            // Set actual logout timer
+            inactivityTimer = setTimeout(() => {
+                alert('Session expired due to inactivity.');
+                window.location.href = '/logout';
+            }, INACTIVITY_TIMEOUT);
+        }
+
+        // Track user activity
+        ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'].forEach(event => {
+            document.addEventListener(event, resetInactivityTimer, true);
+        });
+
+        // Start the inactivity timer
+        resetInactivityTimer();
+
+        // Flag to track if we should logout on close
+        let shouldLogoutOnClose = true;
+
+        // Auto-logout when browser/tab is actually closed (not just hidden)
+        window.addEventListener("beforeunload", (e) => {
+            if (shouldLogoutOnClose) {
+                // Send logout beacon when closing browser/tab
+                navigator.sendBeacon("/logout");
+            }
+        });
+
+        // Handle visibility change (tab switching, minimizing)
+        let visibilityTimer;
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "hidden") {
+                // User switched away or minimized - start a timer
+                // Only logout if they don't come back within 30 seconds
+                visibilityTimer = setTimeout(() => {
+                    navigator.sendBeacon("/logout");
+                    shouldLogoutOnClose = false; // Already logged out
+                }, 30000); // 30 seconds grace period
+            } else {
+                // User came back - cancel the logout timer
+                clearTimeout(visibilityTimer);
+                resetInactivityTimer(); // Reset inactivity since they're back
+            }
+        });
 
         // Drag and drop handlers
         dropzone.addEventListener("dragover", e => { 
@@ -287,17 +344,6 @@
             } finally {
                 progressBar.style.display = "none";
                 uploadBtn.disabled = false;
-            }
-        });
-
-        // Auto-logout on close (optional - you might want to remove this)
-        window.addEventListener("beforeunload", () => {
-            navigator.sendBeacon("/logout");
-        });
-        
-        document.addEventListener("visibilitychange", () => {
-            if (document.visibilityState === "hidden") {
-                navigator.sendBeacon("/logout");
             }
         });
     </script>
