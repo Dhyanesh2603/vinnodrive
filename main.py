@@ -148,10 +148,18 @@ def check_session_timeout(request: Request):
 async def root(request: Request):
     if request.session.get("username"):
         return RedirectResponse("/dashboard")
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse("landing.html", {"request": request})
+
+@app.get("/login")
+async def login_page(request: Request):
+    if request.session.get("username"):
+        return RedirectResponse("/dashboard")
+    return templates.TemplateResponse("login.html", {"request": request})
 
 @app.get("/signup")
 async def signup_page(request: Request):
+    if request.session.get("username"):
+        return RedirectResponse("/dashboard")
     return templates.TemplateResponse("signup.html", {"request": request})
 
 @app.post("/signup")
@@ -172,8 +180,9 @@ async def login(request: Request, username: str = Form(...), password: str = For
     try:
         user = db.query(User).filter(User.username == username).first()
         if not user or not pwd_context.verify(password, user.hashed_password):
-            return templates.TemplateResponse("index.html", {"request": request, "error": "Wrong username or password"})
+            return templates.TemplateResponse("login.html", {"request": request, "error": "Wrong username or password"})
         request.session["username"] = username
+        request.session["last_activity"] = datetime.utcnow().isoformat()
         return RedirectResponse("/dashboard", status_code=303)
     finally:
         db.close()
@@ -189,10 +198,20 @@ async def dashboard(request: Request):
         # Own files
         own_files = db.query(UserFile).filter(UserFile.username == username).all()
         
-        # Shared with me
-        shared_entries = db.query(SharedFile).filter(SharedFile.shared_with == username).all()
-        shared_file_ids = [s.file_id for s in shared_entries]
-        shared_files = db.query(UserFile).filter(UserFile.id.in_(shared_file_ids)).all() if shared_file_ids else []
+        # Files shared WITH me (by others)
+        shared_with_me_entries = db.query(SharedFile).filter(SharedFile.shared_with == username).all()
+        shared_with_me_ids = [s.file_id for s in shared_with_me_entries]
+        shared_with_me_files = db.query(UserFile).filter(UserFile.id.in_(shared_with_me_ids)).all() if shared_with_me_ids else []
+        
+        # Files shared BY me (to others) - with recipient information
+        shared_by_me = []
+        for file in own_files:
+            recipients = db.query(SharedFile).filter(SharedFile.file_id == file.id).all()
+            if recipients:
+                shared_by_me.append({
+                    'file': file,
+                    'shared_with': [r.shared_with for r in recipients]
+                })
         
         # Stats
         actual_used = get_actual_storage(username)
@@ -205,7 +224,8 @@ async def dashboard(request: Request):
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
         "files": own_files,
-        "shared_files": shared_files,
+        "shared_with_me_files": shared_with_me_files,
+        "shared_by_me": shared_by_me,
         "username": username,
         "actual_used": actual_used,
         "original_uploaded": original_uploaded,
@@ -521,4 +541,85 @@ async def logout_get(request: Request):
 async def logout_post(request: Request):
     request.session.clear()
     return JSONResponse({"status": "logged out"})
+
+@app.get("/api/file/duplicate-locations/{file_id}")
+async def get_duplicate_locations(file_id: int, request: Request):
+    """Get all locations where duplicate files exist"""
+    username = request.session.get("username")
+    if not username or check_session_timeout(request):
+        return JSONResponse({"error": "Not authenticated"}, status_code=401)
     
+    db = SessionLocal()
+    try:
+        # Get the file
+        file = db.query(UserFile).filter(UserFile.id == file_id, UserFile.username == username).first()
+        if not file:
+            return JSONResponse({"error": "File not found"}, status_code=404)
+        
+        # Find all files with the same hash for this user
+        duplicates = db.query(UserFile).filter(
+            UserFile.filehash == file.filehash,
+            UserFile.username == username
+        ).all()
+        
+        locations = []
+        for dup in duplicates:
+            locations.append({
+                "id": dup.id,
+                "filename": dup.filename,
+                "folder": dup.folder,
+                "upload_date": dup.upload_date.strftime('%b %d, %Y %H:%M'),
+                "is_current": dup.id == file_id
+            })
+        
+        return JSONResponse({"locations": locations})
+    finally:
+        db.close()
+
+@app.get("/api/file/preview/{file_id}")
+async def preview_file(file_id: int, request: Request):
+    """Get file info for preview"""
+    username = request.session.get("username")
+    if not username or check_session_timeout(request):
+        return JSONResponse({"error": "Not authenticated"}, status_code=401)
+    
+    db = SessionLocal()
+    try:
+        file = db.query(UserFile).filter(UserFile.id == file_id).first()
+        if not file:
+            return JSONResponse({"error": "File not found"}, status_code=404)
+        
+        # Check permissions
+        if file.username != username:
+            shared = db.query(SharedFile).filter(
+                SharedFile.file_id == file_id,
+                SharedFile.shared_with == username
+            ).first()
+            if not shared:
+                return JSONResponse({"error": "Access denied"}, status_code=403)
+        
+        # Determine file type
+        file_ext = file.filename.split('.')[-1].lower() if '.' in file.filename else ''
+        file_type = 'unknown'
+        
+        if file_ext in ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg']:
+            file_type = 'image'
+        elif file_ext in ['pdf']:
+            file_type = 'pdf'
+        elif file_ext in ['txt', 'md', 'json', 'xml', 'csv', 'log']:
+            file_type = 'text'
+        elif file_ext in ['mp4', 'webm', 'ogg', 'mov']:
+            file_type = 'video'
+        elif file_ext in ['mp3', 'wav', 'ogg', 'flac']:
+            file_type = 'audio'
+        
+        return JSONResponse({
+            "id": file.id,
+            "filename": file.filename,
+            "size": file.size,
+            "type": file_type,
+            "extension": file_ext,
+            "download_url": f"/download/{file.id}"
+        })
+    finally:
+        db.close()
