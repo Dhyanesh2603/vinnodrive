@@ -2,64 +2,602 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard - {{ username }}</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - {{ username }} | VinnoDrive</title>
     <style>
-        body { background: #f0f2f5; font-family: Arial, sans-serif; margin: 0; }
-        header { background: #4a90e2; color: white; padding: 20px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .container { max-width: 1200px; margin: 30px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 14px; border-bottom: 1px solid #eee; text-align: left; vertical-align: middle; }
-        th { background: #f8f9fa; font-weight: 600; }
-        .btn { padding: 10px 16px; border: none; border-radius: 6px; color: white; cursor: pointer; text-decoration: none; display: inline-block; margin: 4px 2px; font-size: 14px; transition: 0.3s; }
-        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
-        .download { background: #27ae60; }
-        .delete { background: #e74c3c; }
-        .share-btn { background: #3498db; }
-        .user-share-btn { background: #9b59b6; font-size: 13px; padding: 8px 12px; }
-        .logout { background: #95a5a6; float: right; }
-        .dropzone { border: 3px dashed #4a90e2; padding: 50px; text-align: center; border-radius: 10px; margin: 30px 0; background: #f9fbff; transition: 0.3s; font-size: 18px; color: #666; }
-        .dropzone.dragover { background: #e3f2fd; border-color: #2980b9; }
-        progress { width: 100%; height: 24px; margin: 15px 0; border-radius: 6px; }
-        .stats-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 10px; margin-bottom: 30px; }
-        .stats-card h3 { margin-top: 0; }
-        .public-link { font-size: 13px; word-break: break-all; color: #3498db; font-weight: bold; }
-        .folder-header { background: #e8f4fd; font-weight: bold; padding: 18px; margin: 40px 0 15px 0; border-left: 6px solid #4a90e2; border-radius: 6px; font-size: 20px; }
-        select, input[type=text] { padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 15px; }
-        .create-folder { margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; }
-        .shared-section { margin-top: 50px; padding: 25px; background: #fffacd; border-radius: 10px; border: 2px dashed #f39c12; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #f5f7fa;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --text-primary: #2d3748;
+            --text-secondary: #718096;
+            --border-color: #e2e8f0;
+            --accent-primary: #667eea;
+            --accent-secondary: #764ba2;
+            --success: #48bb78;
+            --danger: #f56565;
+            --warning: #ed8936;
+            --info: #4299e1;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a202c;
+            --bg-secondary: #2d3748;
+            --bg-card: #2d3748;
+            --text-primary: #f7fafc;
+            --text-secondary: #cbd5e0;
+            --border-color: #4a5568;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .theme-toggle {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(180deg);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+        }
+
+        .btn-logout {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-logout:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 30px;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .stat-icon {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--accent-primary);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        /* Upload Section */
+        .upload-section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border-color);
+        }
+
+        .dropzone {
+            border: 3px dashed var(--accent-primary);
+            border-radius: 12px;
+            padding: 60px 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: var(--bg-primary);
+        }
+
+        .dropzone:hover, .dropzone.dragover {
+            background: var(--accent-primary);
+            color: white;
+            transform: scale(1.02);
+        }
+
+        .dropzone-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .upload-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            padding: 12px 30px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+            padding: 12px 30px;
+        }
+
+        select {
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: 2px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-weight: 600;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab:hover {
+            color: var(--accent-primary);
+        }
+
+        .tab.active {
+            color: var(--accent-primary);
+            border-bottom-color: var(--accent-primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* File Cards */
+        .files-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .file-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .file-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .file-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .file-icon {
+            font-size: 32px;
+        }
+
+        .file-name {
+            font-weight: 600;
+            font-size: 16px;
+            flex: 1;
+            word-break: break-word;
+        }
+
+        .file-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-original {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-duplicate {
+            background: #fff3cd;
+            color: #856404;
+            cursor: pointer;
+        }
+
+        .badge-duplicate:hover {
+            background: #ffc107;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 6px;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-info {
+            background: var(--info);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        .preview-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .preview-container img {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Share Modal */
+        .share-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            margin: 10px 0;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        /* Messages */
+        #messages {
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .message-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Folder Header */
+        .folder-header {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 30px 0 20px 0;
+            font-size: 20px;
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Shared Section */
+        .shared-section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 30px;
+            margin-top: 30px;
+            border: 2px solid var(--warning);
+            box-shadow: 0 4px 20px rgba(237, 137, 54, 0.2);
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .files-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                overflow-x: auto;
+                flex-wrap: nowrap;
+            }
+        }
     </style>
 </head>
 <body>
-    <header>
-        <h1>VinnoDrive - {{ username }}'s Dashboard</h1>
-        <a href="/logout" class="btn logout">Logout</a>
-    </header>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">
+                ☁️ VinnoDrive
+            </div>
+            <div class="header-actions">
+                <button class="theme-toggle" id="themeToggle" title="Toggle Dark Mode">
+                    🌙
+                </button>
+                <span style="color: white; font-weight: 600;">{{ username }}</span>
+                <a href="/logout" class="btn btn-logout">Logout</a>
+            </div>
+        </div>
+    </div>
 
     <div class="container">
-        <div class="stats-card">
-            <h3>Storage Statistics</h3>
-            <p><strong>Actual Storage Used:</strong> {{ (actual_used / 1048576)|round(2) }} / 10 MB</p>
-            <progress value="{{ actual_used }}" max="{{ quota_bytes }}" style="width:100%; height:30px;"></progress>
-            <p><strong>Original Uploaded Size:</strong> {{ (original_uploaded / 1048576)|round(2) }} MB</p>
-            <p><strong>Total Space Saved:</strong> {{ (saved_space / 1048576)|round(2) }} MB ({{ savings_percent|round(1) }}% savings)</p>
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">💾</div>
+                <div class="stat-label">Storage Used</div>
+                <div class="stat-value">{{ (actual_used / 1048576)|round(2) }} MB</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ (actual_used / quota_bytes * 100)|round(0) }}%"></div>
+                </div>
+                <div style="font-size: 12px; color: var(--text-secondary); margin-top: 5px;">of {{ quota_mb }} MB</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">📦</div>
+                <div class="stat-label">Total Uploaded</div>
+                <div class="stat-value">{{ (original_uploaded / 1048576)|round(2) }} MB</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">✨</div>
+                <div class="stat-label">Space Saved</div>
+                <div class="stat-value">{{ (saved_space / 1048576)|round(2) }} MB</div>
+                <div style="font-size: 12px; color: var(--success); margin-top: 5px; font-weight: 600;">{{ savings_percent|round(1) }}% savings</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">📁</div>
+                <div class="stat-label">Total Files</div>
+                <div class="stat-value">{{ files|length }}</div>
+            </div>
         </div>
 
-        <div class="create-folder">
-            <h3>Create New Folder</h3>
-            <form action="/create_folder" method="post">
-                <input type="text" name="folder_name" placeholder="e.g. photos/vacation, documents/work, music/2025" required style="width:500px;">
-                <button type="submit" class="btn" style="background:#9b59b6;">Create Folder</button>
-            </form>
-        </div>
-
-        <div style="margin-bottom: 40px;">
-            <div class="dropzone" id="dropzone">📁 Drag & Drop Files Here</div>
-            <div style="text-align:center; margin:20px 0;">
-                <button type="button" id="chooseBtn" class="btn" style="background:#3498db;">📂 Choose Files</button>
-                <button type="button" id="uploadBtn" class="btn" style="background:#27ae60;">⬆️ Upload Files</button>
-                <label style="margin-left:20px; font-weight: bold;">Upload to folder:</label>
-                <select id="folderSelect" style="margin-left:10px;">
+        <!-- Upload Section -->
+        <div class="upload-section">
+            <h3 style="margin-bottom: 20px;">Upload Files</h3>
+            <div class="dropzone" id="dropzone">
+                <div class="dropzone-icon">📁</div>
+                <div><strong>Drag & Drop Files Here</strong></div>
+                <div style="color: var(--text-secondary); margin-top: 10px;">or use the button below</div>
+            </div>
+            <div class="upload-controls">
+                <button type="button" id="chooseBtn" class="btn btn-secondary">
+                    📂 Choose Files
+                </button>
+                <select id="folderSelect">
                     <option value="/">Root (/)</option>
                     {% set unique_folders = [] %}
                     {% for file in files %}
@@ -72,188 +610,300 @@
                         {% endif %}
                     {% endfor %}
                 </select>
+                <button type="button" id="uploadBtn" class="btn btn-primary">
+                    ⬆️ Upload
+                </button>
             </div>
             <input type="file" id="fileInput" multiple style="display:none;">
-            <progress id="progressBar" value="0" max="100" style="display:none;"></progress>
-            <div id="messages" style="margin-top:15px; min-height:40px; font-weight:bold;"></div>
+            <progress id="progressBar" value="0" max="100" style="width: 100%; height: 8px; margin-top: 15px; display: none; border-radius: 4px;"></progress>
+            <div id="messages"></div>
         </div>
 
-        {% set folders = {} %}
-        {% for file in files if not file.filename.startswith(".folder_marker") %}
-            {% if file.folder not in folders %}
-                {% set _ = folders.update({file.folder: []}) %}
-            {% endif %}
-            {% set _ = folders[file.folder].append(file) %}
-        {% endfor %}
+        <!-- Create Folder -->
+        <div class="upload-section">
+            <h3 style="margin-bottom: 15px;">📂 Create New Folder</h3>
+            <form action="/create_folder" method="post" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <input type="text" name="folder_name" class="share-input" placeholder="e.g. photos/vacation, documents/work" required style="flex: 1; min-width: 300px; margin: 0;">
+                <button type="submit" class="btn btn-primary">Create Folder</button>
+            </form>
+        </div>
 
-        {% if folders|length == 0 %}
-            <p style="text-align:center; font-size:18px; color:#777;">No files uploaded yet. Create a folder or upload some files to get started!</p>
-        {% else %}
-            {% for folder_path, folder_files in folders|dictsort %}
-                <div class="folder-header">
-                    📁 {{ folder_path.rstrip("/") if folder_path != "/" else "Root Folder (/)" }} ({{ folder_files|length }} file{{ "s" if folder_files|length != 1 else "" }})
-                </div>
-                <table>
-                    <tr>
-                        <th>File Name</th>
-                        <th>Size</th>
-                        <th>Status</th>
-                        <th>Upload Date</th>
-                        <th>Downloads</th>
-                        <th>Public Link</th>
-                        <th>Share with User</th>
-                        <th>Public Share</th>
-                        <th>Actions</th>
-                    </tr>
-                    {% for file in folder_files %}
-                    <tr>
-                        <td><strong>{{ file.filename }}</strong></td>
-                        <td>{{ (file.size / 1024)|round(2) }} KB</td>
-                        <td>
-                            {% if file.is_reference == 1 %}
-                                <span style="color:#f39c12; font-weight:bold;">Duplicate</span>
-                            {% else %}
-                                <span style="color:#27ae60; font-weight:bold;">Original</span>
-                            {% endif %}
-                        </td>
-                        <td>{{ file.upload_date.strftime('%b %d, %Y %H:%M') }}</td>
-                        <td><strong>{{ file.download_count }}</strong></td>
-                        <td>
-                            {% if file.is_public == 1 %}
-                                <a href="/public/{{ file.share_token }}" target="_blank" class="public-link">
-                                    Click to Download ({{ file.download_count }} downloads)
-                                </a>
-                            {% else %}
-                                <span style="color:#999;">Private</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <form action="/share_with_user" method="post" style="display:inline;">
-                                <input type="hidden" name="file_id" value="{{ file.id }}">
-                                <input type="text" name="target_username" placeholder="username" required style="width:100px; padding:6px; font-size:13px;">
-                                <button type="submit" class="btn user-share-btn">Share</button>
-                            </form>
-                        </td>
-                        <td>
-                            <form action="/toggle_share" method="post" style="display:inline;">
-                                <input type="hidden" name="file_id" value="{{ file.id }}">
-                                <button type="submit" class="btn share-btn">
-                                    {% if file.is_public == 1 %}Unshare{% else %}Make Public{% endif %}
-                                </button>
-                            </form>
-                        </td>
-                        <td>
-                            <a href="/download/{{ file.id }}" class="btn download">Download</a>
-                            <form action="/delete" method="post" style="display:inline;">
-                                <input type="hidden" name="file_id" value="{{ file.id }}">
-                                <button type="submit" class="btn delete" onclick="return confirm('Permanently delete {{ file.filename }}?');">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </table>
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" data-tab="my-files">📁 My Files</button>
+            <button class="tab" data-tab="shared-with-me">📥 Shared With Me</button>
+            <button class="tab" data-tab="shared-by-me">📤 Shared By Me</button>
+        </div>
+
+        <!-- Tab: My Files -->
+        <div class="tab-content active" id="my-files">
+            {% set folders = {} %}
+            {% for file in files if not file.filename.startswith(".folder_marker") %}
+                {% if file.folder not in folders %}
+                    {% set _ = folders.update({file.folder: []}) %}
+                {% endif %}
+                {% set _ = folders[file.folder].append(file) %}
             {% endfor %}
-        {% endif %}
 
-        {% if shared_files|length > 0 %}
-            <div class="shared-section">
-                <h2 style="margin-top:0;">📬 Files Shared with Me ({{ shared_files|length }})</h2>
-                <table>
-                    <tr>
-                        <th>File Name</th>
-                        <th>Size</th>
-                        <th>Shared By</th>
-                        <th>Upload Date</th>
-                        <th>Actions</th>
-                    </tr>
-                    {% for file in shared_files %}
-                    <tr style="background:#fffef0;">
-                        <td><strong>{{ file.filename }}</strong> (shared)</td>
-                        <td>{{ (file.size / 1024)|round(2) }} KB</td>
-                        <td>{{ file.username }}</td>
-                        <td>{{ file.upload_date.strftime('%b %d, %Y %H:%M') }}</td>
-                        <td>
-                            <a href="/download/{{ file.id }}" class="btn download">Download</a>
-                        </td>
-                    </tr>
+            {% if folders|length == 0 %}
+                <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                    <div style="font-size: 64px; margin-bottom: 20px;">📂</div>
+                    <h3>No files yet</h3>
+                    <p>Upload some files to get started!</p>
+                </div>
+            {% else %}
+                {% for folder_path, folder_files in folders|dictsort %}
+                    <div class="folder-header">
+                        📁 {{ folder_path.rstrip("/") if folder_path != "/" else "Root Folder" }} ({{ folder_files|length }} files)
+                    </div>
+                    <div class="files-grid">
+                        {% for file in folder_files %}
+                        <div class="file-card">
+                            <div class="file-header">
+                                <div class="file-icon">📄</div>
+                                <div class="file-name">{{ file.filename }}</div>
+                            </div>
+                            <div class="file-meta">
+                                <span>{{ (file.size / 1024)|round(2) }} KB</span>
+                                <span>{{ file.upload_date.strftime('%b %d, %Y') }}</span>
+                            </div>
+                            <div style="margin-bottom: 15px;">
+                                {% if file.is_reference == 1 %}
+                                    <span class="badge badge-duplicate" onclick="showDuplicateLocations({{ file.id }})" title="Click to see all locations">
+                                        🔄 Duplicate
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-original">✨ Original</span>
+                                {% endif %}
+                                {% if file.is_public == 1 %}
+                                    <span class="badge" style="background: #bee3f8; color: #2c5282;">🌐 Public</span>
+                                {% endif %}
+                            </div>
+                            <div class="file-actions">
+                                <button class="btn btn-sm btn-info" onclick="previewFile({{ file.id }})">👁️ Preview</button>
+                                <a href="/download/{{ file.id }}" class="btn btn-sm btn-success">⬇️ Download</a>
+                                <button class="btn btn-sm btn-warning" onclick="openShareModal({{ file.id }}, '{{ file.filename }}')">👥 Share</button>
+                                <form action="/toggle_share" method="post" style="display: inline;">
+                                    <input type="hidden" name="file_id" value="{{ file.id }}">
+                                    <button type="submit" class="btn btn-sm" style="background: var(--info); color: white;">
+                                        {% if file.is_public == 1 %}🔒 Make Private{% else %}🌐 Make Public{% endif %}
+                                    </button>
+                                </form>
+                                <form action="/delete" method="post" style="display: inline;">
+                                    <input type="hidden" name="file_id" value="{{ file.id }}">
+                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete {{ file.filename }}?');">🗑️ Delete</button>
+                                </form>
+                            </div>
+                            {% if file.is_public == 1 %}
+                                <div style="margin-top: 10px; padding: 10px; background: var(--bg-primary); border-radius: 6px; font-size: 12px;">
+                                    <strong>Public Link:</strong>
+                                    <input type="text" value="{{ request.url.scheme }}://{{ request.url.netloc }}/public/{{ file.share_token }}" readonly style="width: 100%; padding: 6px; margin-top: 5px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 11px;" onclick="this.select()">
+                                    <div style="color: var(--text-secondary); margin-top: 5px;">Downloads: {{ file.download_count }}</div>
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <!-- Tab: Shared With Me -->
+        <div class="tab-content" id="shared-with-me">
+            {% if shared_with_me_files|length == 0 %}
+                <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                    <div style="font-size: 64px; margin-bottom: 20px;">📥</div>
+                    <h3>No files shared with you</h3>
+                    <p>When someone shares a file with you, it will appear here</p>
+                </div>
+            {% else %}
+                <div class="files-grid">
+                    {% for file in shared_with_me_files %}
+                    <div class="file-card" style="border-left: 4px solid var(--warning);">
+                        <div class="file-header">
+                            <div class="file-icon">📄</div>
+                            <div class="file-name">{{ file.filename }}</div>
+                        </div>
+                        <div class="file-meta">
+                            <span>{{ (file.size / 1024)|round(2) }} KB</span>
+                            <span>Shared by: <strong>{{ file.username }}</strong></span>
+                        </div>
+                        <div class="file-actions">
+                            <button class="btn btn-sm btn-info" onclick="previewFile({{ file.id }})">👁️ Preview</button>
+                            <a href="/download/{{ file.id }}" class="btn btn-sm btn-success">⬇️ Download</a>
+                        </div>
+                    </div>
                     {% endfor %}
-                </table>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Tab: Shared By Me -->
+        <div class="tab-content" id="shared-by-me">
+            {% if shared_by_me|length == 0 %}
+                <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                    <div style="font-size: 64px; margin-bottom: 20px;">📤</div>
+                    <h3>You haven't shared any files yet</h3>
+                    <p>Share files with other users using the Share button</p>
+                </div>
+            {% else %}
+                <div class="files-grid">
+                    {% for item in shared_by_me %}
+                    <div class="file-card" style="border-left: 4px solid var(--success);">
+                        <div class="file-header">
+                            <div class="file-icon">📄</div>
+                            <div class="file-name">{{ item.file.filename }}</div>
+                        </div>
+                        <div class="file-meta">
+                            <span>{{ (item.file.size / 1024)|round(2) }} KB</span>
+                            <span>{{ item.file.upload_date.strftime('%b %d, %Y') }}</span>
+                        </div>
+                        <div style="margin: 15px 0; padding: 12px; background: var(--bg-primary); border-radius: 8px;">
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; font-weight: 600;">Shared with:</div>
+                            {% for recipient in item.shared_with %}
+                                <span class="badge" style="background: var(--success); color: white; margin: 2px;">👤 {{ recipient }}</span>
+                            {% endfor %}
+                        </div>
+                        <div class="file-actions">
+                            <button class="btn btn-sm btn-info" onclick="previewFile({{ item.file.id }})">👁️ Preview</button>
+                            <a href="/download/{{ item.file.id }}" class="btn btn-sm btn-success">⬇️ Download</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div class="modal" id="shareModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('shareModal')">×</button>
+            <h2 style="margin-bottom: 20px;">👥 Share File</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">Sharing: <strong id="shareFileName"></strong></p>
+            <form action="/share_with_user" method="post" id="shareForm">
+                <input type="hidden" name="file_id" id="shareFileId">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Enter username:</label>
+                <input type="text" name="target_username" class="share-input" placeholder="username" required>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 15px;">Share File</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div class="modal" id="previewModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('previewModal')">×</button>
+            <h2 style="margin-bottom: 20px;" id="previewFileName">File Preview</h2>
+            <div class="preview-container" id="previewContainer">
+                <div style="color: var(--text-secondary);">Loading preview...</div>
             </div>
-        {% endif %}
+            <div style="text-align: center; margin-top: 20px;">
+                <a id="previewDownloadBtn" class="btn btn-primary" download>⬇️ Download File</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Duplicate Locations Modal -->
+    <div class="modal" id="duplicateModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('duplicateModal')">×</button>
+            <h2 style="margin-bottom: 20px;">📁 Duplicate File Locations</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">This file exists in multiple locations:</p>
+            <div id="duplicateLocations"></div>
+        </div>
     </div>
 
     <script>
-        const dropzone = document.getElementById("dropzone");
-        const fileInput = document.getElementById("fileInput");
-        const chooseBtn = document.getElementById("chooseBtn");
-        const uploadBtn = document.getElementById("uploadBtn");
-        const progressBar = document.getElementById("progressBar");
-        const messages = document.getElementById("messages");
-        const folderSelect = document.getElementById("folderSelect");
+        // Theme Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const html = document.documentElement;
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        html.setAttribute('data-theme', savedTheme);
+        themeToggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            themeToggle.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+        });
+
+        // Tab Switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs and contents
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked tab and corresponding content
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Upload Functionality
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+        const chooseBtn = document.getElementById('chooseBtn');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const progressBar = document.getElementById('progressBar');
+        const messages = document.getElementById('messages');
+        const folderSelect = document.getElementById('folderSelect');
 
         let filesToUpload = [];
         let inactivityTimer;
-        const INACTIVITY_TIMEOUT = {{ session_timeout_minutes }} * 60 * 1000; // Convert minutes to milliseconds
-        const WARNING_TIME = 2 * 60 * 1000; // Show warning 2 minutes before timeout
+        const INACTIVITY_TIMEOUT = {{ session_timeout_minutes }} * 60 * 1000;
+        const WARNING_TIME = 2 * 60 * 1000;
 
-        // Choose files button
         chooseBtn.onclick = () => fileInput.click();
 
-        // Activity tracking - reset timer on any user interaction
         function resetInactivityTimer() {
             clearTimeout(inactivityTimer);
             
-            // Set warning timer (2 minutes before actual logout)
             setTimeout(() => {
                 if (confirm('You will be logged out in 2 minutes due to inactivity. Click OK to stay logged in.')) {
-                    resetInactivityTimer(); // User clicked OK, reset timer
+                    resetInactivityTimer();
                 }
             }, INACTIVITY_TIMEOUT - WARNING_TIME);
             
-            // Set actual logout timer
             inactivityTimer = setTimeout(() => {
                 alert('Session expired due to inactivity.');
                 window.location.href = '/logout';
             }, INACTIVITY_TIMEOUT);
         }
 
-        // Track user activity
         ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'].forEach(event => {
             document.addEventListener(event, resetInactivityTimer, true);
         });
 
-        // Start the inactivity timer
         resetInactivityTimer();
 
-        // Flag to track if we should logout on close
         let shouldLogoutOnClose = true;
 
-        // Auto-logout when browser/tab is actually closed (not just hidden)
         window.addEventListener("beforeunload", (e) => {
             if (shouldLogoutOnClose) {
-                // Send logout beacon when closing browser/tab
                 navigator.sendBeacon("/logout");
             }
         });
 
-        // Handle visibility change (tab switching, minimizing)
         let visibilityTimer;
         document.addEventListener("visibilitychange", () => {
             if (document.visibilityState === "hidden") {
-                // User switched away or minimized - start a timer
-                // Only logout if they don't come back within 30 seconds
                 visibilityTimer = setTimeout(() => {
                     navigator.sendBeacon("/logout");
-                    shouldLogoutOnClose = false; // Already logged out
-                }, 30000); // 30 seconds grace period
+                    shouldLogoutOnClose = false;
+                }, 30000);
             } else {
-                // User came back - cancel the logout timer
                 clearTimeout(visibilityTimer);
-                resetInactivityTimer(); // Reset inactivity since they're back
+                resetInactivityTimer();
             }
         });
 
-        // Drag and drop handlers
+        // Drag and drop
         dropzone.addEventListener("dragover", e => { 
             e.preventDefault(); 
             dropzone.classList.add("dragover"); 
@@ -270,7 +920,6 @@
             updateMessage();
         });
 
-        // File input change handler
         fileInput.addEventListener("change", () => {
             filesToUpload = Array.from(fileInput.files);
             updateMessage();
@@ -279,16 +928,14 @@
         function updateMessage() {
             if (filesToUpload.length > 0) {
                 const folderName = folderSelect.options[folderSelect.selectedIndex].text;
-                messages.innerHTML = `<p style="color:#2c3e50;"><strong>${filesToUpload.length}</strong> file${filesToUpload.length > 1 ? 's' : ''} selected → Ready to upload to <strong>${folderName}</strong></p>`;
+                messages.innerHTML = `<div style="padding: 12px; background: #e3f2fd; border-radius: 8px; color: #1565c0;"><strong>${filesToUpload.length}</strong> file${filesToUpload.length > 1 ? 's' : ''} selected → Ready to upload to <strong>${folderName}</strong></div>`;
             } else {
                 messages.innerHTML = "";
             }
         }
 
-        // Update message when folder selection changes
         folderSelect.addEventListener("change", updateMessage);
 
-        // Upload handler
         uploadBtn.addEventListener("click", async () => {
             if (filesToUpload.length === 0) {
                 alert("Please select at least one file!");
@@ -302,7 +949,7 @@
             try {
                 progressBar.style.display = "block";
                 progressBar.value = 0;
-                messages.innerHTML = `<p style="color:#2c3e50;">Uploading ${filesToUpload.length} file${filesToUpload.length > 1 ? 's' : ''}...</p>`;
+                messages.innerHTML = '<div style="padding: 12px; background: #e3f2fd; border-radius: 8px; color: #1565c0;">Uploading files...</div>';
                 uploadBtn.disabled = true;
 
                 const response = await fetch("/upload", {
@@ -314,37 +961,128 @@
                 
                 if (!response.ok) {
                     const errorData = await response.json();
-                    messages.innerHTML = `<p style="color:red; font-weight:bold;">Upload failed: ${errorData.error || 'Server error'}</p>`;
+                    messages.innerHTML = `<div class="message-error">Upload failed: ${errorData.error || 'Server error'}</div>`;
                     return;
                 }
 
                 const result = await response.json();
                 
                 if (result.error) {
-                    messages.innerHTML = `<p style="color:red; font-weight:bold;">Error: ${result.error}</p>`;
+                    messages.innerHTML = `<div class="message-error">${result.error}</div>`;
                     return;
                 }
 
-                // Success
-                messages.innerHTML = `<p style="color:green; font-weight:bold;">✓ All files uploaded successfully!</p>`;
+                messages.innerHTML = '<div class="message-success">✓ All files uploaded successfully!</div>';
                 result.results.forEach(r => {
-                    messages.innerHTML += `<p style="margin-left:20px;">• ${r.filename}: <span style="color:green;">${r.message}</span></p>`;
+                    messages.innerHTML += `<div style="padding: 8px; margin-top: 5px; background: var(--bg-primary); border-radius: 6px;">• ${r.filename}: <span style="color: var(--success);">${r.message}</span></div>`;
                 });
 
-                // Reset form
                 filesToUpload = [];
                 fileInput.value = "";
                 
-                // Reload page after 2 seconds
                 setTimeout(() => location.reload(), 2000);
 
             } catch (error) {
-                messages.innerHTML = `<p style="color:red; font-weight:bold;">Upload failed: ${error.message}</p>`;
+                messages.innerHTML = `<div class="message-error">Upload failed: ${error.message}</div>`;
                 console.error("Upload error:", error);
             } finally {
                 progressBar.style.display = "none";
                 uploadBtn.disabled = false;
             }
+        });
+
+        // Modal Functions
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function openShareModal(fileId, fileName) {
+            document.getElementById('shareFileId').value = fileId;
+            document.getElementById('shareFileName').textContent = fileName;
+            openModal('shareModal');
+        }
+
+        // Preview File
+        async function previewFile(fileId) {
+            try {
+                const response = await fetch(`/api/file/preview/${fileId}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    alert(data.error || 'Failed to load preview');
+                    return;
+                }
+
+                document.getElementById('previewFileName').textContent = data.filename;
+                document.getElementById('previewDownloadBtn').href = data.download_url;
+                
+                const container = document.getElementById('previewContainer');
+                
+                if (data.type === 'image') {
+                    container.innerHTML = `<img src="${data.download_url}" alt="${data.filename}" style="max-width: 100%; border-radius: 8px;">`;
+                } else if (data.type === 'text') {
+                    container.innerHTML = '<div style="text-align: left; padding: 20px; background: var(--bg-primary); border-radius: 8px; font-family: monospace; white-space: pre-wrap; max-height: 400px; overflow-y: auto;">Loading text content...</div>';
+                    // For text files, we'd need to fetch the content separately
+                    container.innerHTML = '<div style="color: var(--text-secondary);">Text preview not available. Please download to view.</div>';
+                } else if (data.type === 'pdf') {
+                    container.innerHTML = `<div style="color: var(--text-secondary);">📄 PDF File<br><br>Click download to view this PDF file.</div>`;
+                } else if (data.type === 'video') {
+                    container.innerHTML = `<video controls style="max-width: 100%; border-radius: 8px;"><source src="${data.download_url}"></video>`;
+                } else if (data.type === 'audio') {
+                    container.innerHTML = `<audio controls style="width: 100%;"><source src="${data.download_url}"></audio>`;
+                } else {
+                    container.innerHTML = `<div style="color: var(--text-secondary);">📎 ${data.extension.toUpperCase()} File<br><br>Preview not available for this file type.<br>Click download to view.</div>`;
+                }
+
+                openModal('previewModal');
+            } catch (error) {
+                alert('Failed to load preview: ' + error.message);
+            }
+        }
+
+        // Show Duplicate Locations
+        async function showDuplicateLocations(fileId) {
+            try {
+                const response = await fetch(`/api/file/duplicate-locations/${fileId}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    alert(data.error || 'Failed to load locations');
+                    return;
+                }
+
+                const container = document.getElementById('duplicateLocations');
+                
+                if (data.locations.length === 0) {
+                    container.innerHTML = '<div style="color: var(--text-secondary);">No duplicates found.</div>';
+                } else {
+                    container.innerHTML = data.locations.map(loc => `
+                        <div style="padding: 15px; margin-bottom: 10px; background: ${loc.is_current ? 'var(--accent-primary)' : 'var(--bg-primary)'}; color: ${loc.is_current ? 'white' : 'var(--text-primary)'}; border-radius: 8px; border-left: 4px solid var(--accent-primary);">
+                            <div style="font-weight: 600; margin-bottom: 5px;">📁 ${loc.folder}</div>
+                            <div style="font-size: 14px; opacity: 0.9;">📄 ${loc.filename}</div>
+                            <div style="font-size: 12px; opacity: 0.8; margin-top: 5px;">📅 ${loc.upload_date}</div>
+                            ${loc.is_current ? '<div style="font-size: 12px; margin-top: 5px; font-weight: 600;">👈 Current File</div>' : ''}
+                        </div>
+                    `).join('');
+                }
+
+                openModal('duplicateModal');
+            } catch (error) {
+                alert('Failed to load duplicate locations: ' + error.message);
+            }
+        }
+
+        // Close modals when clicking outside
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
         });
     </script>
 </body>
