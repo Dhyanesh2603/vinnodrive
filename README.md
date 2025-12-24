@@ -56,10 +56,6 @@ vinnodrive/
 │ └── style.css
 └── README.md
 
-yaml
-Copy code
-
----
 
 ## ⚡ How to Run Locally
 
