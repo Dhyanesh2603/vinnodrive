@@ -1,132 +1,149 @@
-# VinnoDrive ☁️
+# ☁️ VinnoDrive
 
-A personal cloud drive with **smart file deduplication**, built as my **first full-stack web project**.
+VinnoDrive is a **cloud-based file storage and sharing web application** built to manage files efficiently with features like **duplicate file detection**, **folder organization**, **file sharing**, and a **modern interactive dashboard**.
 
-VinnoDrive stores identical files only once on disk and creates references for duplicates — saving real storage space, just like modern cloud services.
+It is designed as a **student-friendly cloud drive** that demonstrates real-world backend + frontend integration using Python and modern web technologies.
 
 ---
 
 ## 🚀 Features
 
-- Drag & drop **multi-file upload**
-- **Smart deduplication** using SHA-256 hashing
-- Original vs duplicate (reference) file detection
-- Real disk space saving (not just logical)
-- Clean and responsive dashboard
-- View all uploaded files with:
-  - Filename
+### 📤 File Upload & Management
+- Upload **multiple files** at once (drag & drop supported)
+- Upload files into **custom folders**
+- Storage **quota tracking** with visual progress bar
+- View file size, upload date, and type
+
+### 🧠 Smart Deduplication
+- Detects **duplicate files** automatically
+- Stores only one physical copy to **save storage space**
+- Shows **space saved percentage**
+- View all locations where a duplicate file exists
+
+### 📁 Folder System
+- Create nested folders (e.g. `documents/work`, `photos/travel`)
+- Organize files by folders
+- Select all files inside a folder
+
+### 👁️ File Preview
+- Preview files directly inside the app:
+  - 🖼️ Images
+  - 🎥 Videos
+  - 🎵 Audio
+  - 📄 PDFs (download-based)
+
+### 🔍 Search, Filter & Sort
+- Search files by name
+- Filter by file type:
+  - Images
+  - Documents
+  - Videos
+  - Audio
+- Sort by:
+  - Name
+  - Date
   - Size
-  - Upload date
-  - Uploader
-  - Deduplication status
-- Download and delete files
-- Storage usage statistics
-- Fast and lightweight backend
+
+### 👥 File Sharing
+- Share files with **other registered users**
+- See:
+  - Files shared *with you*
+  - Files shared *by you*
+- Toggle **public access** with shareable links
+- Track **download count** for public files
+
+### 🗑️ Bulk Actions
+- Select multiple files
+- Bulk delete files with confirmation
+
+### 🌗 UI & Experience
+- Light / Dark mode toggle (saved in browser)
+- Responsive design (desktop + mobile)
+- Clean, modern dashboard UI
 
 ---
 
-## 🛠 Tech Stack
+## 🛠️ Tech Stack
 
-**Backend**
-- FastAPI (Python)
-- SQLAlchemy ORM
-- SQLite database
+### Backend
+- **Python**
+- **FastAPI** (API & server-side logic)
+- **SQLite** (database)
+- **Jinja2** (templating)
 
-**Frontend**
-- Jinja2 templating engine
-- HTML, CSS, Vanilla JavaScript
-
-**Other**
-- SHA-256 hashing for deduplication
-- Uvicorn ASGI server
+### Frontend
+- **HTML5**
+- **CSS3** (custom UI, animations, dark mode)
+- **JavaScript (Vanilla)**
 
 ---
 
-## 📁 Project Structure
-
-vinnodrive/
-│
-├── main.py
-├── vinnodrive.db
-├── uploads/
-├── templates/
-│ ├── index.html
-│ └── dashboard.html
-├── static/
-│ └── style.css
-└── README.md
-
-
-## ⚡ How to Run Locally
+## ⚙️ Installation & Setup
 
 ### 1️⃣ Clone the repository
 ```bash
-git clone https://github.com/Dhyanesh2603/vinnodrive.git
+git clone https://github.com/your-username/vinnodrive.git
 cd vinnodrive
-2️⃣ Create a virtual environment (recommended)
-bash
-Copy code
+```
+
+### 2️⃣ Create virtual environment
+```bash
 python -m venv venv
-Activate it:
+venv\Scripts\activate   # Windows
+source venv/bin/activate # Linux/Mac
+```
 
-Windows
+### 3️⃣ Install dependencies
+```bash
+pip install -r requirements.txt
+```
 
-bash
-Copy code
-venv\Scripts\activate
-Linux / macOS
-
-bash
-Copy code
-source venv/bin/activate
-3️⃣ Install dependencies
-bash
-Copy code
-pip install fastapi uvicorn sqlalchemy jinja2 python-multipart
-4️⃣ Run the app
-bash
-Copy code
+### 4️⃣ Run the application
+```bash
 uvicorn main:app --reload
-5️⃣ Open in browser
-cpp
-Copy code
+```
+
+### 5️⃣ Open in browser
+```
 http://127.0.0.1:8000
-🌟 Why This Project Matters
-This project helped me learn and apply:
+```
 
-Backend routing with FastAPI
+---
 
-Database modeling using SQLAlchemy
+## 📸 Screenshots
 
-File handling and hashing
+### Landing Page
+![Landing Page](screenshots/homepage.png)
 
-Real deduplication logic
+### Login Page
+![Login](screenshots/login.png)
 
-Frontend–backend integration
+### Signup Page
+![Signup](screenshots/signup.png)
 
-Debugging real-world issues
+### Dashboard
+![Dashboard](screenshots/dashboard-top.png)
+![Dashboard](screenshots/dashboard-files.png)
+### Light Mode
+![Light Mode](screenshots/lightmode.png)
 
-It’s not just a CRUD app — it solves a real storage problem.
 
-🔮 Future Improvements
-User authentication (login/signup)
+## 🎯 Project Purpose
 
-Folder support
+This project was built to:
+- Understand **backend–frontend integration**
+- Learn **file handling, storage optimization, and APIs**
+- Practice building a **real-world full-stack application**
+- Create a **resume-ready project** for internships and placements
 
-Public file sharing links
+---
 
-File previews (images, PDFs)
+## 👨‍💻 Author
 
-Cloud deployment
+**Dhyanesh S**  
+Student Developer | Full‑Stack Learner
 
-Storage quotas per user
+---
 
-Dark mode 🌙
 
-🙌 Acknowledgements
-Built with curiosity, persistence, and many late-night debugging sessions.
 
-👨‍💻 Author
-Dhyanesh S
-First Full-Stack Project
-December 2025.
