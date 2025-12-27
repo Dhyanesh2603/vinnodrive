@@ -112,18 +112,27 @@ http://127.0.0.1:8000
 
 ## 📸 Screenshots
 
+
 ### Landing Page
 ![Landing Page](screenshots/homepage.png)
+
 
 ### Login Page
 ![Login](screenshots/login.png)
 
+
 ### Signup Page
 ![Signup](screenshots/signup.png)
 
-### Dashboard
+
+### Dashboard Top
 ![Dashboard](screenshots/dashboard-top.png)
+
+
+### Dashboard Files
 ![Dashboard](screenshots/dashboard-files.png)
+
+
 ### Light Mode
 ![Light Mode](screenshots/lightmode.png)
 
