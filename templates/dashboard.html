@@ -285,50 +285,63 @@
             display: block;
         }
 
-        /* File Cards */
-        .files-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-        }
-
-        .file-card {
+        /* File Row - Horizontal List */
+        .file-row {
             background: var(--bg-card);
+            border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 20px;
-            border: 1px solid var(--border-color);
+            margin-bottom: 15px;
             transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
 
-        .file-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        .file-row:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            transform: translateX(5px);
         }
 
-        .file-header {
+        .file-header-row {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 15px;
-        }
-
-        .file-icon {
-            font-size: 32px;
-        }
-
-        .file-name {
-            font-weight: 600;
-            font-size: 16px;
-            flex: 1;
-            word-break: break-word;
-        }
-
-        .file-meta {
-            display: flex;
             justify-content: space-between;
-            margin-bottom: 15px;
-            font-size: 13px;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .file-info-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .file-icon-big {
+            font-size: 40px;
+        }
+
+        .file-details {
+            flex: 1;
+        }
+
+        .file-name-big {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .file-meta-row {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
             color: var(--text-secondary);
+        }
+
+        .file-badges-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
         }
 
         .badge {
@@ -353,36 +366,76 @@
             background: #ffc107;
         }
 
-        .file-actions {
+        .badge-public {
+            background: #bee3f8;
+            color: #2c5282;
+        }
+
+        .file-actions-row {
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
         }
 
         .btn-sm {
-            padding: 6px 12px;
-            font-size: 12px;
+            padding: 8px 16px;
+            font-size: 13px;
             border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: white;
+        }
+
+        .btn-sm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
         .btn-success {
             background: var(--success);
-            color: white;
         }
 
         .btn-danger {
             background: var(--danger);
-            color: white;
         }
 
         .btn-info {
             background: var(--info);
-            color: white;
         }
 
         .btn-warning {
             background: var(--warning);
-            color: white;
+        }
+
+        .public-link-section {
+            margin-top: 15px;
+            padding: 15px;
+            background: var(--bg-primary);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .public-link-section strong {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .public-link-section input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 12px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .public-link-section input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
         }
 
         /* Modal */
@@ -451,7 +504,6 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
 
-        /* Share Modal */
         .share-input {
             width: 100%;
             padding: 12px;
@@ -462,7 +514,6 @@
             color: var(--text-primary);
         }
 
-        /* Messages */
         #messages {
             margin: 15px 0;
             padding: 15px;
@@ -482,7 +533,6 @@
             border: 1px solid #f5c6cb;
         }
 
-        /* Folder Header */
         .folder-header {
             background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
             color: white;
@@ -492,25 +542,6 @@
             font-size: 20px;
             font-weight: 700;
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        /* Shared Section */
-        .shared-section {
-            background: var(--bg-card);
-            border-radius: 16px;
-            padding: 30px;
-            margin-top: 30px;
-            border: 2px solid var(--warning);
-            box-shadow: 0 4px 20px rgba(237, 137, 54, 0.2);
-        }
-
-        .section-title {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
 
         /* Responsive */
@@ -524,13 +555,13 @@
                 grid-template-columns: 1fr;
             }
 
-            .files-grid {
-                grid-template-columns: 1fr;
+            .file-header-row {
+                flex-direction: column;
+                align-items: flex-start;
             }
 
-            .tabs {
-                overflow-x: auto;
-                flex-wrap: nowrap;
+            .file-actions-row {
+                width: 100%;
             }
         }
     </style>
@@ -656,54 +687,59 @@
                     <div class="folder-header">
                         📁 {{ folder_path.rstrip("/") if folder_path != "/" else "Root Folder" }} ({{ folder_files|length }} files)
                     </div>
-                    <div class="files-grid">
-                        {% for file in folder_files %}
-                        <div class="file-card">
-                            <div class="file-header">
-                                <div class="file-icon">📄</div>
-                                <div class="file-name">{{ file.filename }}</div>
+                    
+                    {% for file in folder_files %}
+                    <div class="file-row">
+                        <div class="file-header-row">
+                            <div class="file-info-left">
+                                <div class="file-icon-big">📄</div>
+                                <div class="file-details">
+                                    <div class="file-name-big">{{ file.filename }}</div>
+                                    <div class="file-meta-row">
+                                        <span>{{ (file.size / 1024)|round(2) }} KB</span>
+                                        <span>{{ file.upload_date.strftime('%b %d, %Y') }}</span>
+                                    </div>
+                                    <div class="file-badges-row">
+                                        {% if file.is_reference == 1 %}
+                                            <span class="badge badge-duplicate" onclick="showDuplicateLocations({{ file.id }})" title="Click to see all locations">
+                                                🔄 Duplicate
+                                            </span>
+                                        {% else %}
+                                            <span class="badge badge-original">✨ Original</span>
+                                        {% endif %}
+                                        {% if file.is_public == 1 %}
+                                            <span class="badge badge-public">🌐 Public</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
                             </div>
-                            <div class="file-meta">
-                                <span>{{ (file.size / 1024)|round(2) }} KB</span>
-                                <span>{{ file.upload_date.strftime('%b %d, %Y') }}</span>
-                            </div>
-                            <div style="margin-bottom: 15px;">
-                                {% if file.is_reference == 1 %}
-                                    <span class="badge badge-duplicate" onclick="showDuplicateLocations({{ file.id }})" title="Click to see all locations">
-                                        🔄 Duplicate
-                                    </span>
-                                {% else %}
-                                    <span class="badge badge-original">✨ Original</span>
-                                {% endif %}
-                                {% if file.is_public == 1 %}
-                                    <span class="badge" style="background: #bee3f8; color: #2c5282;">🌐 Public</span>
-                                {% endif %}
-                            </div>
-                            <div class="file-actions">
+                            
+                            <div class="file-actions-row">
                                 <button class="btn btn-sm btn-info" onclick="previewFile({{ file.id }})">👁️ Preview</button>
                                 <a href="/download/{{ file.id }}" class="btn btn-sm btn-success">⬇️ Download</a>
                                 <button class="btn btn-sm btn-warning" onclick="openShareModal({{ file.id }}, '{{ file.filename }}')">👥 Share</button>
                                 <form action="/toggle_share" method="post" style="display: inline;">
                                     <input type="hidden" name="file_id" value="{{ file.id }}">
-                                    <button type="submit" class="btn btn-sm" style="background: var(--info); color: white;">
+                                    <button type="submit" class="btn btn-sm btn-info">
                                         {% if file.is_public == 1 %}🔒 Make Private{% else %}🌐 Make Public{% endif %}
                                     </button>
                                 </form>
-                                <form action="/delete" method="post" style="display: inline;">
+                                <form action="/delete" method="post" style="display: inline;" onsubmit="return confirmDelete('{{ file.filename }}');">
                                     <input type="hidden" name="file_id" value="{{ file.id }}">
-                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete {{ file.filename }}?');">🗑️ Delete</button>
+                                    <button type="submit" class="btn btn-sm btn-danger">🗑️ Delete</button>
                                 </form>
                             </div>
-                            {% if file.is_public == 1 %}
-                                <div style="margin-top: 10px; padding: 10px; background: var(--bg-primary); border-radius: 6px; font-size: 12px;">
-                                    <strong>Public Link:</strong>
-                                    <input type="text" value="{{ request.url.scheme }}://{{ request.url.netloc }}/public/{{ file.share_token }}" readonly style="width: 100%; padding: 6px; margin-top: 5px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 11px;" onclick="this.select()">
-                                    <div style="color: var(--text-secondary); margin-top: 5px;">Downloads: {{ file.download_count }}</div>
-                                </div>
-                            {% endif %}
                         </div>
-                        {% endfor %}
+                        
+                        {% if file.is_public == 1 %}
+                        <div class="public-link-section">
+                            <strong>Public Link:</strong>
+                            <input type="text" value="{{ request.url.scheme }}://{{ request.url.netloc }}/public/{{ file.share_token }}" readonly onclick="this.select()">
+                            <div style="color: var(--text-secondary); margin-top: 8px; font-size: 12px;">Downloads: {{ file.download_count }}</div>
+                        </div>
+                        {% endif %}
                     </div>
+                    {% endfor %}
                 {% endfor %}
             {% endif %}
         </div>
@@ -717,24 +753,26 @@
                     <p>When someone shares a file with you, it will appear here</p>
                 </div>
             {% else %}
-                <div class="files-grid">
-                    {% for file in shared_with_me_files %}
-                    <div class="file-card" style="border-left: 4px solid var(--warning);">
-                        <div class="file-header">
-                            <div class="file-icon">📄</div>
-                            <div class="file-name">{{ file.filename }}</div>
+                {% for file in shared_with_me_files %}
+                <div class="file-row" style="border-left: 4px solid var(--warning);">
+                    <div class="file-header-row">
+                        <div class="file-info-left">
+                            <div class="file-icon-big">📄</div>
+                            <div class="file-details">
+                                <div class="file-name-big">{{ file.filename }}</div>
+                                <div class="file-meta-row">
+                                    <span>{{ (file.size / 1024)|round(2) }} KB</span>
+                                    <span>Shared by: <strong>{{ file.username }}</strong></span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="file-meta">
-                            <span>{{ (file.size / 1024)|round(2) }} KB</span>
-                            <span>Shared by: <strong>{{ file.username }}</strong></span>
-                        </div>
-                        <div class="file-actions">
+                        <div class="file-actions-row">
                             <button class="btn btn-sm btn-info" onclick="previewFile({{ file.id }})">👁️ Preview</button>
                             <a href="/download/{{ file.id }}" class="btn btn-sm btn-success">⬇️ Download</a>
                         </div>
                     </div>
-                    {% endfor %}
                 </div>
+                {% endfor %}
             {% endif %}
         </div>
 
@@ -747,30 +785,32 @@
                     <p>Share files with other users using the Share button</p>
                 </div>
             {% else %}
-                <div class="files-grid">
-                    {% for item in shared_by_me %}
-                    <div class="file-card" style="border-left: 4px solid var(--success);">
-                        <div class="file-header">
-                            <div class="file-icon">📄</div>
-                            <div class="file-name">{{ item.file.filename }}</div>
+                {% for item in shared_by_me %}
+                <div class="file-row" style="border-left: 4px solid var(--success);">
+                    <div class="file-header-row">
+                        <div class="file-info-left">
+                            <div class="file-icon-big">📄</div>
+                            <div class="file-details">
+                                <div class="file-name-big">{{ item.file.filename }}</div>
+                                <div class="file-meta-row">
+                                    <span>{{ (item.file.size / 1024)|round(2) }} KB</span>
+                                    <span>{{ item.file.upload_date.strftime('%b %d, %Y') }}</span>
+                                </div>
+                                <div style="margin-top: 10px;">
+                                    <span style="font-size: 12px; color: var(--text-secondary); font-weight: 600;">Shared with:</span>
+                                    {% for recipient in item.shared_with %}
+                                        <span class="badge" style="background: var(--success); color: white; margin-left: 5px;">👤 {{ recipient }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
                         </div>
-                        <div class="file-meta">
-                            <span>{{ (item.file.size / 1024)|round(2) }} KB</span>
-                            <span>{{ item.file.upload_date.strftime('%b %d, %Y') }}</span>
-                        </div>
-                        <div style="margin: 15px 0; padding: 12px; background: var(--bg-primary); border-radius: 8px;">
-                            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; font-weight: 600;">Shared with:</div>
-                            {% for recipient in item.shared_with %}
-                                <span class="badge" style="background: var(--success); color: white; margin: 2px;">👤 {{ recipient }}</span>
-                            {% endfor %}
-                        </div>
-                        <div class="file-actions">
+                        <div class="file-actions-row">
                             <button class="btn btn-sm btn-info" onclick="previewFile({{ item.file.id }})">👁️ Preview</button>
                             <a href="/download/{{ item.file.id }}" class="btn btn-sm btn-success">⬇️ Download</a>
                         </div>
                     </div>
-                    {% endfor %}
                 </div>
+                {% endfor %}
             {% endif %}
         </div>
     </div>
