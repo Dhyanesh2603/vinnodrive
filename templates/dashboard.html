@@ -42,7 +42,6 @@
             transition: all 0.3s ease;
         }
 
-        /* Header */
         .header {
             background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
             color: white;
@@ -119,14 +118,12 @@
             transform: translateY(-2px);
         }
 
-        /* Container */
         .container {
             max-width: 1400px;
             margin: 30px auto;
             padding: 0 30px;
         }
 
-        /* Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -181,7 +178,6 @@
             transition: width 0.5s ease;
         }
 
-        /* Upload Section */
         .upload-section {
             background: var(--bg-card);
             border-radius: 16px;
@@ -249,7 +245,6 @@
             cursor: pointer;
         }
 
-        /* Tabs */
         .tabs {
             display: flex;
             gap: 10px;
@@ -285,7 +280,6 @@
             display: block;
         }
 
-        /* File Row - Horizontal List */
         .file-row {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -438,7 +432,6 @@
             border-color: var(--accent-primary);
         }
 
-        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -493,7 +486,6 @@
             font-size: 20px;
         }
 
-        /* Delete Confirmation Modal */
         .delete-modal-content {
             background: var(--bg-card);
             border-radius: 16px;
@@ -621,7 +613,6 @@
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
             .header-content {
                 flex-direction: column;
@@ -652,7 +643,6 @@
     </style>
 </head>
 <body>
-    <!-- Header -->
     <div class="header">
         <div class="header-content">
             <div class="logo">
@@ -669,7 +659,6 @@
     </div>
 
     <div class="container">
-        <!-- Stats Grid -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon">💾</div>
@@ -701,7 +690,6 @@
             </div>
         </div>
 
-        <!-- Upload Section -->
         <div class="upload-section">
             <h3 style="margin-bottom: 20px;">Upload Files</h3>
             <div class="dropzone" id="dropzone">
@@ -735,7 +723,6 @@
             <div id="messages"></div>
         </div>
 
-        <!-- Create Folder -->
         <div class="upload-section">
             <h3 style="margin-bottom: 15px;">📂 Create New Folder</h3>
             <form action="/create_folder" method="post" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
@@ -744,14 +731,12 @@
             </form>
         </div>
 
-        <!-- Tabs -->
         <div class="tabs">
             <button class="tab active" data-tab="my-files">📁 My Files</button>
             <button class="tab" data-tab="shared-with-me">📥 Shared With Me</button>
             <button class="tab" data-tab="shared-by-me">📤 Shared By Me</button>
         </div>
 
-        <!-- Tab: My Files -->
         <div class="tab-content active" id="my-files">
             {% set folders = {} %}
             {% for file in files if not file.filename.startswith(".folder_marker") %}
@@ -829,7 +814,6 @@
             {% endif %}
         </div>
 
-        <!-- Tab: Shared With Me -->
         <div class="tab-content" id="shared-with-me">
             {% if shared_with_me_files|length == 0 %}
                 <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
@@ -861,7 +845,6 @@
             {% endif %}
         </div>
 
-        <!-- Tab: Shared By Me -->
         <div class="tab-content" id="shared-by-me">
             {% if shared_by_me|length == 0 %}
                 <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
@@ -900,7 +883,6 @@
         </div>
     </div>
 
-    <!-- Delete Confirmation Modal -->
     <div class="modal" id="deleteModal">
         <div class="delete-modal-content">
             <div class="delete-icon">⚠️</div>
@@ -914,7 +896,6 @@
         </div>
     </div>
 
-    <!-- Share Modal -->
     <div class="modal" id="shareModal">
         <div class="modal-content">
             <button class="modal-close" onclick="closeModal('shareModal')">×</button>
@@ -929,7 +910,6 @@
         </div>
     </div>
 
-    <!-- Preview Modal -->
     <div class="modal" id="previewModal">
         <div class="modal-content">
             <button class="modal-close" onclick="closeModal('previewModal')">×</button>
@@ -943,7 +923,6 @@
         </div>
     </div>
 
-    <!-- Duplicate Locations Modal -->
     <div class="modal" id="duplicateModal">
         <div class="modal-content">
             <button class="modal-close" onclick="closeModal('duplicateModal')">×</button>
@@ -954,7 +933,6 @@
     </div>
 
     <script>
-        // Theme Toggle
         const themeToggle = document.getElementById('themeToggle');
         const html = document.documentElement;
 
@@ -970,7 +948,6 @@
             themeToggle.textContent = newTheme === 'dark' ? '☀️' : '🌙';
         });
 
-        // Tab Switching
         document.querySelectorAll('.tab').forEach(tab => {
             tab.addEventListener('click', () => {
                 document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -980,7 +957,6 @@
             });
         });
 
-        // Delete Confirmation
         let currentDeleteFormId = null;
 
         function confirmDelete(fileId, filename) {
@@ -995,7 +971,6 @@
             }
         });
 
-        // Upload Functionality
         const dropzone = document.getElementById('dropzone');
         const fileInput = document.getElementById('fileInput');
         const chooseBtn = document.getElementById('chooseBtn');
@@ -1005,53 +980,8 @@
         const folderSelect = document.getElementById('folderSelect');
 
         let filesToUpload = [];
-        let inactivityTimer;
-        const INACTIVITY_TIMEOUT = {{ session_timeout_minutes }} * 60 * 1000;
-        const WARNING_TIME = 2 * 60 * 1000;
 
         chooseBtn.onclick = () => fileInput.click();
-
-        function resetInactivityTimer() {
-            clearTimeout(inactivityTimer);
-            
-            setTimeout(() => {
-                if (confirm('You will be logged out in 2 minutes due to inactivity. Click OK to stay logged in.')) {
-                    resetInactivityTimer();
-                }
-            }, INACTIVITY_TIMEOUT - WARNING_TIME);
-            
-            inactivityTimer = setTimeout(() => {
-                alert('Session expired due to inactivity.');
-                window.location.href = '/logout';
-            }, INACTIVITY_TIMEOUT);
-        }
-
-        ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'].forEach(event => {
-            document.addEventListener(event, resetInactivityTimer, true);
-        });
-
-        resetInactivityTimer();
-
-        let shouldLogoutOnClose = true;
-
-        window.addEventListener("beforeunload", (e) => {
-            if (shouldLogoutOnClose) {
-                navigator.sendBeacon("/logout");
-            }
-        });
-
-        let visibilityTimer;
-        document.addEventListener("visibilitychange", () => {
-            if (document.visibilityState === "hidden") {
-                visibilityTimer = setTimeout(() => {
-                    navigator.sendBeacon("/logout");
-                    shouldLogoutOnClose = false;
-                }, 30000);
-            } else {
-                clearTimeout(visibilityTimer);
-                resetInactivityTimer();
-            }
-        });
 
         dropzone.addEventListener("dragover", e => { 
             e.preventDefault(); 
@@ -1140,7 +1070,6 @@
             }
         });
 
-        // Modal Functions
         function openModal(modalId) {
             document.getElementById(modalId).classList.add('active');
         }
