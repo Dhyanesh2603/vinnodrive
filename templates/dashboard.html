@@ -493,6 +493,83 @@
             font-size: 20px;
         }
 
+        /* Delete Confirmation Modal */
+        .delete-modal-content {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 40px 30px;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+            animation: slideUp 0.3s ease;
+        }
+
+        .delete-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .delete-modal-content h2 {
+            color: var(--danger);
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+
+        .delete-modal-content p {
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .delete-filename {
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 30px;
+            padding: 12px;
+            background: var(--bg-primary);
+            border-radius: 8px;
+            word-break: break-word;
+        }
+
+        .delete-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .btn-cancel {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-cancel:hover {
+            background: var(--bg-primary);
+            transform: translateY(-2px);
+        }
+
+        .btn-confirm-delete {
+            background: var(--danger);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-confirm-delete:hover {
+            background: #dc3545;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(245, 101, 101, 0.4);
+        }
+
         .preview-container {
             text-align: center;
             margin: 20px 0;
@@ -561,6 +638,14 @@
             }
 
             .file-actions-row {
+                width: 100%;
+            }
+
+            .delete-actions {
+                flex-direction: column;
+            }
+
+            .btn-cancel, .btn-confirm-delete {
                 width: 100%;
             }
         }
@@ -724,9 +809,9 @@
                                         {% if file.is_public == 1 %}🔒 Make Private{% else %}🌐 Make Public{% endif %}
                                     </button>
                                 </form>
-                                <form action="/delete" method="post" style="display: inline;" onsubmit="return confirmDelete('{{ file.filename }}');">
+                                <form id="deleteForm{{ file.id }}" action="/delete" method="post" style="display: inline;">
                                     <input type="hidden" name="file_id" value="{{ file.id }}">
-                                    <button type="submit" class="btn btn-sm btn-danger">🗑️ Delete</button>
+                                    <button type="button" class="btn btn-sm btn-danger" onclick="confirmDelete({{ file.id }}, '{{ file.filename }}')">🗑️ Delete</button>
                                 </form>
                             </div>
                         </div>
@@ -815,6 +900,20 @@
         </div>
     </div>
 
+    <!-- Delete Confirmation Modal -->
+    <div class="modal" id="deleteModal">
+        <div class="delete-modal-content">
+            <div class="delete-icon">⚠️</div>
+            <h2>Delete File?</h2>
+            <p>Are you sure you want to delete this file?</p>
+            <div class="delete-filename" id="deleteFileName"></div>
+            <div class="delete-actions">
+                <button class="btn-cancel" onclick="closeModal('deleteModal')">Cancel</button>
+                <button class="btn-confirm-delete" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Share Modal -->
     <div class="modal" id="shareModal">
         <div class="modal-content">
@@ -859,7 +958,6 @@
         const themeToggle = document.getElementById('themeToggle');
         const html = document.documentElement;
 
-        // Load saved theme
         const savedTheme = localStorage.getItem('theme') || 'light';
         html.setAttribute('data-theme', savedTheme);
         themeToggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
@@ -875,14 +973,26 @@
         // Tab Switching
         document.querySelectorAll('.tab').forEach(tab => {
             tab.addEventListener('click', () => {
-                // Remove active class from all tabs and contents
                 document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                 document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                
-                // Add active class to clicked tab and corresponding content
                 tab.classList.add('active');
                 document.getElementById(tab.dataset.tab).classList.add('active');
             });
+        });
+
+        // Delete Confirmation
+        let currentDeleteFormId = null;
+
+        function confirmDelete(fileId, filename) {
+            currentDeleteFormId = fileId;
+            document.getElementById('deleteFileName').textContent = filename;
+            openModal('deleteModal');
+        }
+
+        document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
+            if (currentDeleteFormId) {
+                document.getElementById('deleteForm' + currentDeleteFormId).submit();
+            }
         });
 
         // Upload Functionality
@@ -943,7 +1053,6 @@
             }
         });
 
-        // Drag and drop
         dropzone.addEventListener("dragover", e => { 
             e.preventDefault(); 
             dropzone.classList.add("dragover"); 
@@ -1038,6 +1147,9 @@
 
         function closeModal(modalId) {
             document.getElementById(modalId).classList.remove('active');
+            if (modalId === 'deleteModal') {
+                currentDeleteFormId = null;
+            }
         }
 
         function openShareModal(fileId, fileName) {
@@ -1046,7 +1158,6 @@
             openModal('shareModal');
         }
 
-        // Preview File
         async function previewFile(fileId) {
             try {
                 const response = await fetch(`/api/file/preview/${fileId}`);
@@ -1065,8 +1176,6 @@
                 if (data.type === 'image') {
                     container.innerHTML = `<img src="${data.download_url}" alt="${data.filename}" style="max-width: 100%; border-radius: 8px;">`;
                 } else if (data.type === 'text') {
-                    container.innerHTML = '<div style="text-align: left; padding: 20px; background: var(--bg-primary); border-radius: 8px; font-family: monospace; white-space: pre-wrap; max-height: 400px; overflow-y: auto;">Loading text content...</div>';
-                    // For text files, we'd need to fetch the content separately
                     container.innerHTML = '<div style="color: var(--text-secondary);">Text preview not available. Please download to view.</div>';
                 } else if (data.type === 'pdf') {
                     container.innerHTML = `<div style="color: var(--text-secondary);">📄 PDF File<br><br>Click download to view this PDF file.</div>`;
@@ -1084,7 +1193,6 @@
             }
         }
 
-        // Show Duplicate Locations
         async function showDuplicateLocations(fileId) {
             try {
                 const response = await fetch(`/api/file/duplicate-locations/${fileId}`);
@@ -1116,11 +1224,13 @@
             }
         }
 
-        // Close modals when clicking outside
         document.querySelectorAll('.modal').forEach(modal => {
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) {
                     modal.classList.remove('active');
+                    if (modal.id === 'deleteModal') {
+                        currentDeleteFormId = null;
+                    }
                 }
             });
         });
