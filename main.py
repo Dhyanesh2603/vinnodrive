@@ -14,12 +14,12 @@ from sqlalchemy.orm import sessionmaker
 from passlib.context import CryptContext
 from starlette.middleware.sessions import SessionMiddleware
 
+
 # === CONFIG ===
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 USER_QUOTA_BYTES = 10 * 1024 * 1024  # 10 MB limit
 SECRET_KEY = "change_this_to_a_strong_random_string_in_production!!!"
-SESSION_TIMEOUT_MINUTES = 20  # Auto-logout after 20 minutes of inactivity
 
 # Rate limiting
 last_upload_time = {}
@@ -118,30 +118,7 @@ def normalize_folder_path(folder: str) -> str:
         folder = folder + "/"
     return folder
 
-def check_session_timeout(request: Request):
-    """Check if session has timed out due to inactivity"""
-    if "username" not in request.session:
-        return True
-    
-    last_activity = request.session.get("last_activity")
-    if not last_activity:
-        # First time, set last activity
-        request.session["last_activity"] = datetime.utcnow().isoformat()
-        return False
-    
-    # Parse last activity time
-    last_activity_time = datetime.fromisoformat(last_activity)
-    time_elapsed = datetime.utcnow() - last_activity_time
-    
-    # Check if more than SESSION_TIMEOUT_MINUTES have passed
-    if time_elapsed.total_seconds() > (SESSION_TIMEOUT_MINUTES * 60):
-        # Session expired
-        request.session.clear()
-        return True
-    
-    # Update last activity time
-    request.session["last_activity"] = datetime.utcnow().isoformat()
-    return False
+
 
 # === ROUTES ===
 @app.get("/")
@@ -155,6 +132,7 @@ async def login_page(request: Request):
     if request.session.get("username"):
         return RedirectResponse("/dashboard")
     return templates.TemplateResponse("login.html", {"request": request})
+
 
 @app.get("/signup")
 async def signup_page(request: Request):
@@ -182,7 +160,6 @@ async def login(request: Request, username: str = Form(...), password: str = For
         if not user or not pwd_context.verify(password, user.hashed_password):
             return templates.TemplateResponse("login.html", {"request": request, "error": "Wrong username or password"})
         request.session["username"] = username
-        request.session["last_activity"] = datetime.utcnow().isoformat()
         return RedirectResponse("/dashboard", status_code=303)
     finally:
         db.close()
@@ -190,7 +167,7 @@ async def login(request: Request, username: str = Form(...), password: str = For
 @app.get("/dashboard")
 async def dashboard(request: Request):
     username = request.session.get("username")
-    if not username or check_session_timeout(request):
+    if not username: 
         return RedirectResponse("/")
     
     db = SessionLocal()
@@ -232,14 +209,13 @@ async def dashboard(request: Request):
         "saved_space": saved_space,
         "savings_percent": savings_percent,
         "quota_bytes": USER_QUOTA_BYTES,
-        "quota_mb": 10,
-        "session_timeout_minutes": SESSION_TIMEOUT_MINUTES
+        "quota_mb": 10
     })
 
 @app.post("/upload")
 async def upload(request: Request, folder: str = Form("/"), files: list[UploadFile] = File(...)):
     username = request.session.get("username")
-    if not username or check_session_timeout(request):
+    if not username:
         return JSONResponse({"results": [], "error": "Session expired. Please login again."}, status_code=401)
 
     if not files or all(not f.filename for f in files):
@@ -353,7 +329,7 @@ async def upload(request: Request, folder: str = Form("/"), files: list[UploadFi
 @app.get("/download/{file_id}")
 async def download(file_id: int, request: Request):
     username = request.session.get("username")
-    if not username or check_session_timeout(request):
+    if not username :
         return RedirectResponse("/")
     
     db = SessionLocal()
@@ -403,7 +379,7 @@ async def public_download(token: str):
 @app.post("/toggle_share")
 async def toggle_share(request: Request, file_id: int = Form(...)):
     username = request.session.get("username")
-    if not username or check_session_timeout(request):
+    if not username:
         return RedirectResponse("/")
     
     db = SessionLocal()
@@ -422,7 +398,7 @@ async def toggle_share(request: Request, file_id: int = Form(...)):
 @app.post("/share_with_user")
 async def share_with_user(request: Request, file_id: int = Form(...), target_username: str = Form(...)):
     username = request.session.get("username")
-    if not username or check_session_timeout(request):
+    if not username:
         return RedirectResponse("/")
     
     db = SessionLocal()
@@ -457,7 +433,7 @@ async def share_with_user(request: Request, file_id: int = Form(...), target_use
 @app.post("/create_folder")
 async def create_folder(request: Request, folder_name: str = Form(...)):
     username = request.session.get("username")
-    if not username or check_session_timeout(request):
+    if not username:
         return RedirectResponse("/")
     
     # Clean and normalize folder name
@@ -506,7 +482,7 @@ async def create_folder(request: Request, folder_name: str = Form(...)):
 @app.post("/delete")
 async def delete(request: Request, file_id: int = Form(...)):
     username = request.session.get("username")
-    if not username or check_session_timeout(request):
+    if not username:
         return RedirectResponse("/")
     
     db = SessionLocal()
@@ -546,7 +522,7 @@ async def logout_post(request: Request):
 async def get_duplicate_locations(file_id: int, request: Request):
     """Get all locations where duplicate files exist"""
     username = request.session.get("username")
-    if not username or check_session_timeout(request):
+    if not username:
         return JSONResponse({"error": "Not authenticated"}, status_code=401)
     
     db = SessionLocal()
@@ -578,18 +554,20 @@ async def get_duplicate_locations(file_id: int, request: Request):
 
 @app.get("/api/file/preview/{file_id}")
 async def preview_file(file_id: int, request: Request):
-    """Get file info for preview"""
     username = request.session.get("username")
-    if not username or check_session_timeout(request):
+    if not username:
         return JSONResponse({"error": "Not authenticated"}, status_code=401)
-    
+
     db = SessionLocal()
     try:
-        file = db.query(UserFile).filter(UserFile.id == file_id).first()
+        file = db.query(UserFile).filter(
+            UserFile.id == file_id
+        ).first()
+
         if not file:
             return JSONResponse({"error": "File not found"}, status_code=404)
-        
-        # Check permissions
+
+        # Permission check
         if file.username != username:
             shared = db.query(SharedFile).filter(
                 SharedFile.file_id == file_id,
@@ -597,14 +575,13 @@ async def preview_file(file_id: int, request: Request):
             ).first()
             if not shared:
                 return JSONResponse({"error": "Access denied"}, status_code=403)
-        
-        # Determine file type
+
         file_ext = file.filename.split('.')[-1].lower() if '.' in file.filename else ''
         file_type = 'unknown'
-        
+
         if file_ext in ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg']:
             file_type = 'image'
-        elif file_ext in ['pdf']:
+        elif file_ext == 'pdf':
             file_type = 'pdf'
         elif file_ext in ['txt', 'md', 'json', 'xml', 'csv', 'log']:
             file_type = 'text'
@@ -612,7 +589,7 @@ async def preview_file(file_id: int, request: Request):
             file_type = 'video'
         elif file_ext in ['mp3', 'wav', 'ogg', 'flac']:
             file_type = 'audio'
-        
+
         return JSONResponse({
             "id": file.id,
             "filename": file.filename,
