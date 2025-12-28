@@ -6,3 +6,4 @@ python-multipart==0.0.9
 bcrypt==4.2.0
 passlib[bcrypt]==1.7.4
 starlette==0.38.5
+itsdangerous==2.1.2
