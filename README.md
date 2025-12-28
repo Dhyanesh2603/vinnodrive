@@ -136,15 +136,6 @@ http://127.0.0.1:8000
 ### Light Mode
 ![Light Mode](screenshots/lightmode.png)
 
-
-## 🎯 Project Purpose
-
-This project was built to:
-- Understand **backend–frontend integration**
-- Learn **file handling, storage optimization, and APIs**
-- Practice building a **real-world full-stack application**
-- Create a **resume-ready project** for internships and placements
-
 ---
 
 ## 👨‍💻 Author
