@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -71,11 +71,15 @@
         }
 
         .logo {
-            font-size: 80px;
+            font-size: 70px;
             font-weight: 900;
             margin-bottom: 20px;
             text-shadow: 0 0 40px rgba(255, 255, 255, 0.5);
             animation: pulse 3s ease-in-out infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
         }
 
         @keyframes pulse {
@@ -122,7 +126,10 @@
             border-radius: 50px;
             cursor: pointer;
             text-decoration: none;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -151,6 +158,9 @@
         .btn span {
             position: relative;
             z-index: 1;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .btn-primary {
@@ -195,8 +205,9 @@
         }
 
         .feature-icon {
-            font-size: 40px;
             margin-bottom: 10px;
+            display: flex;
+            justify-content: center;
         }
 
         .feature-text {
@@ -204,7 +215,6 @@
             font-weight: 600;
         }
 
-        /* Floating animation for features */
         .feature {
             animation: floatFeature 3s ease-in-out infinite;
         }
@@ -226,31 +236,9 @@
             }
         }
 
-        /* Scroll indicator */
-        .scroll-indicator {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            animation: bounce 2s infinite;
-        }
-
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% {
-                transform: translateX(-50%) translateY(0);
-            }
-            40% {
-                transform: translateX(-50%) translateY(-20px);
-            }
-            60% {
-                transform: translateX(-50%) translateY(-10px);
-            }
-        }
-
-        /* Responsive design */
         @media (max-width: 768px) {
             .logo {
-                font-size: 50px;
+                font-size: 44px;
             }
 
             .tagline {
@@ -269,16 +257,14 @@
             .cta-buttons {
                 flex-direction: column;
                 align-items: center;
-                margin-bottom: 100px; /* adjust value as needed */
-}
-
+                margin-bottom: 100px;
             }
 
             .features {
                 bottom: 30px;
                 gap: 30px;
             }
-        
+        }
     </style>
 </head>
 <body>
@@ -288,7 +274,10 @@
 
         <!-- Main content -->
         <div class="hero-content">
-            <div class="logo">☁️ VinnoDrive</div>
+            <div class="logo">
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+                VinnoDrive
+            </div>
             <div class="tagline">Cloud Storage Reimagined</div>
             <div class="subtitle">
                 Store, share, and collaborate with the most intelligent cloud storage platform. 
@@ -297,10 +286,16 @@
             
             <div class="cta-buttons">
                 <a href="/login" class="btn btn-primary">
-                    <span>🔐 Login</span>
+                    <span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        Login
+                    </span>
                 </a>
                 <a href="/signup" class="btn btn-secondary">
-                    <span>✨ Sign Up Free</span>
+                    <span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
+                        Sign Up Free
+                    </span>
                 </a>
             </div>
         </div>
@@ -308,15 +303,21 @@
         <!-- Features -->
         <div class="features">
             <div class="feature">
-                <div class="feature-icon">🚀</div>
+                <div class="feature-icon">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.71 1.26-1.5 1.5-2.5"/><path d="M12 15l-3-3"/><path d="M15 12l-3-3"/><path d="M9 18l3-3"/><path d="M14.5 9.5a2.12 2.12 0 0 0 0-3l-1.8-1.8a2.12 2.12 0 0 0-3 0L3.5 8.1c-.8.8-.8 2.1 0 2.8l1.8 1.8c.8.8 2.1.8 2.8 0L14.5 9.5z"/><path d="M15.5 8.5L20 4"/><path d="M18.5 11.5L21 9"/></svg>
+                </div>
                 <div class="feature-text">Lightning Fast</div>
             </div>
             <div class="feature">
-                <div class="feature-icon">🔒</div>
+                <div class="feature-icon">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
                 <div class="feature-text">Secure & Private</div>
             </div>
             <div class="feature">
-                <div class="feature-icon">💎</div>
+                <div class="feature-icon">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                </div>
                 <div class="feature-text">Smart Deduplication</div>
             </div>
         </div>

@@ -1,65 +1,984 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard - {{ username }}</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - {{ username }} | VinnoDrive</title>
     <style>
-        body { background: #f0f2f5; font-family: Arial, sans-serif; margin: 0; }
-        header { background: #4a90e2; color: white; padding: 20px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .container { max-width: 1200px; margin: 30px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 14px; border-bottom: 1px solid #eee; text-align: left; vertical-align: middle; }
-        th { background: #f8f9fa; font-weight: 600; }
-        .btn { padding: 10px 16px; border: none; border-radius: 6px; color: white; cursor: pointer; text-decoration: none; display: inline-block; margin: 4px 2px; font-size: 14px; transition: 0.3s; }
-        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
-        .download { background: #27ae60; }
-        .delete { background: #e74c3c; }
-        .share-btn { background: #3498db; }
-        .user-share-btn { background: #9b59b6; font-size: 13px; padding: 8px 12px; }
-        .logout { background: #95a5a6; float: right; }
-        .dropzone { border: 3px dashed #4a90e2; padding: 50px; text-align: center; border-radius: 10px; margin: 30px 0; background: #f9fbff; transition: 0.3s; font-size: 18px; color: #666; }
-        .dropzone.dragover { background: #e3f2fd; border-color: #2980b9; }
-        progress { width: 100%; height: 24px; margin: 15px 0; border-radius: 6px; }
-        .stats-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 10px; margin-bottom: 30px; }
-        .stats-card h3 { margin-top: 0; }
-        .public-link { font-size: 13px; word-break: break-all; color: #3498db; font-weight: bold; }
-        .folder-header { background: #e8f4fd; font-weight: bold; padding: 18px; margin: 40px 0 15px 0; border-left: 6px solid #4a90e2; border-radius: 6px; font-size: 20px; }
-        select, input[type=text] { padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 15px; }
-        .create-folder { margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; }
-        .shared-section { margin-top: 50px; padding: 25px; background: #fffacd; border-radius: 10px; border: 2px dashed #f39c12; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #f5f7fa;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --text-primary: #2d3748;
+            --text-secondary: #718096;
+            --border-color: #e2e8f0;
+            --accent-primary: #667eea;
+            --accent-secondary: #764ba2;
+            --success: #48bb78;
+            --danger: #f56565;
+            --warning: #ed8936;
+            --info: #4299e1;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a202c;
+            --bg-secondary: #2d3748;
+            --bg-card: #2d3748;
+            --text-primary: #f7fafc;
+            --text-secondary: #cbd5e0;
+            --border-color: #4a5568;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            scroll-behavior: smooth;
+        }
+
+        .icon {
+            width: 1.1em;
+            height: 1.1em;
+            vertical-align: -0.15em;
+            display: inline-block;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 26px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .theme-toggle {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(30deg);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        .btn-primary {
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+        }
+
+        .btn-secondary {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .btn-info {
+            background: var(--info);
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: #3182ce;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #dd6b20;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+
+        .btn-logout {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-logout:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 30px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: var(--accent-primary);
+            display: flex;
+            align-items: center;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--accent-primary);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .upload-section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+
+        .dropzone {
+            border: 3px dashed var(--accent-primary);
+            border-radius: 12px;
+            padding: 50px 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: var(--bg-primary);
+            position: relative;
+        }
+
+        .dropzone:hover, .dropzone.dragover {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: var(--accent-secondary);
+            transform: scale(1.01);
+        }
+
+        .dropzone-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+            color: var(--accent-primary);
+            display: flex;
+            justify-content: center;
+        }
+
+        .dropzone-file-list {
+            margin-top: 20px;
+            font-size: 14px;
+            text-align: left;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            background: var(--bg-card);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .dropzone-file-item {
+            padding: 12px 15px;
+            margin: 8px 0;
+            background: var(--bg-primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .dropzone-file-item:hover {
+            border-color: var(--accent-primary);
+            transform: translateX(5px);
+        }
+
+        .dropzone-file-item .file-remove {
+            margin-left: auto;
+            background: var(--danger);
+            color: white;
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .dropzone-file-item .file-remove:hover {
+            background: #dc3545;
+            transform: scale(1.1);
+        }
+
+        .upload-controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        #folderSelect {
+            padding: 10px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 14px;
+            min-width: 180px;
+        }
+
+        .search-filter-section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 25px 30px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+
+        .search-container {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 250px;
+            padding: 12px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn.active, .filter-btn:hover {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+        }
+
+        .sort-dropdown {
+            padding: 8px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 13px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .folder-section {
+            margin-bottom: 30px;
+        }
+
+        .folder-header {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .file-row {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .file-row:hover {
+            box-shadow: var(--shadow-md);
+            border-color: var(--accent-primary);
+        }
+
+        .file-row.selected {
+            background: rgba(102, 126, 234, 0.08);
+            border-color: var(--accent-primary);
+        }
+
+        .file-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            margin-left: 30px;
+        }
+
+        .file-checkbox {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .file-info-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+        }
+
+        .file-icon-big {
+            font-size: 28px;
+            color: var(--accent-primary);
+            display: flex;
+            align-items: center;
+        }
+
+        .file-details {
+            flex: 1;
+        }
+
+        .file-name-big {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .file-meta-row {
+            font-size: 13px;
+            color: var(--text-secondary);
+            display: flex;
+            gap: 15px;
+        }
+
+        .file-badges-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: default;
+        }
+
+        .badge-duplicate {
+            background: var(--warning);
+            color: white;
+            cursor: pointer;
+        }
+
+        .badge-original {
+            background: var(--success);
+            color: white;
+        }
+
+        .badge-public {
+            background: var(--info);
+            color: white;
+        }
+
+        .file-actions-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .public-link-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed var(--border-color);
+            font-size: 13px;
+            margin-left: 30px;
+        }
+
+        .public-link-section input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 12px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            margin-top: 6px;
+        }
+
+        .bulk-actions-bar {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-card);
+            border: 2px solid var(--accent-primary);
+            border-radius: 16px;
+            padding: 15px 30px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+            display: none;
+            gap: 15px;
+            align-items: center;
+            z-index: 999;
+            animation: slideUp 0.3s ease;
+        }
+
+        .bulk-actions-bar.active {
+            display: flex;
+        }
+
+        .bulk-count {
+            font-weight: 700;
+            color: var(--accent-primary);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .delete-modal-content {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 40px 30px;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+            animation: slideUp 0.3s ease;
+        }
+
+        .delete-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: var(--danger);
+            display: flex;
+            justify-content: center;
+        }
+
+        .delete-modal-content h2 {
+            color: var(--danger);
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+
+        .delete-modal-content p {
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .delete-filename {
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 30px;
+            padding: 12px;
+            background: var(--bg-primary);
+            border-radius: 8px;
+            word-break: break-word;
+        }
+
+        .delete-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .btn-cancel {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-cancel:hover {
+            background: var(--bg-primary);
+            transform: translateY(-2px);
+        }
+
+        .btn-confirm-delete {
+            background: var(--danger);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-confirm-delete:hover {
+            background: #dc3545;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(245, 101, 101, 0.4);
+        }
+
+        .preview-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .preview-container img {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .share-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            margin: 10px 0;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        #messages {
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .message-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .no-results-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: var(--text-secondary);
+            display: flex;
+            justify-content: center;
+        }
+
+        .select-all-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .file-header-row {
+                flex-direction: column;
+                align-items: flex-start;
+                margin-left: 0;
+            }
+
+            .file-checkbox {
+                left: auto;
+                right: 20px;
+            }
+
+            .file-actions-row {
+                width: 100%;
+            }
+
+            .delete-actions {
+                flex-direction: column;
+            }
+
+            .btn-cancel, .btn-confirm-delete {
+                width: 100%;
+            }
+
+            .bulk-actions-bar {
+                flex-direction: column;
+                bottom: 20px;
+                padding: 15px;
+            }
+
+            .search-container {
+                flex-direction: column;
+            }
+
+            .search-input {
+                min-width: 100%;
+            }
+
+            .folder-header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+        }
     </style>
 </head>
 <body>
-    <header>
-        <h1>VinnoDrive - {{ username }}'s Dashboard</h1>
-        <a href="/logout" class="btn logout">Logout</a>
-    </header>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">
+                <svg class="icon" style="width: 28px; height: 28px;" viewBox="0 0 24 24"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+                VinnoDrive
+            </div>
+            <div class="header-actions">
+                <button class="theme-toggle" id="themeToggle" title="Toggle Dark Mode">
+                    <svg class="icon" id="themeIcon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+                </button>
+                <span style="color: white; font-weight: 600;">{{ username }}</span>
+                <a href="/logout" class="btn btn-logout">Logout</a>
+            </div>
+        </div>
+    </div>
 
     <div class="container">
-        <div class="stats-card">
-            <h3>Storage Statistics</h3>
-            <p><strong>Actual Storage Used:</strong> {{ (actual_used / 1048576)|round(2) }} / 10 MB</p>
-            <progress value="{{ actual_used }}" max="{{ quota_bytes }}" style="width:100%; height:30px;"></progress>
-            <p><strong>Original Uploaded Size:</strong> {{ (original_uploaded / 1048576)|round(2) }} MB</p>
-            <p><strong>Total Space Saved:</strong> {{ (saved_space / 1048576)|round(2) }} MB ({{ savings_percent|round(1) }}% savings)</p>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <svg class="icon" style="width: 32px; height: 32px;" viewBox="0 0 24 24"><line x1="22" x2="2" y1="12" y2="12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/><line x1="6" x2="6.01" y1="16" y2="16"/><line x1="10" x2="10.01" y1="16" y2="16"/></svg>
+                </div>
+                <div class="stat-label">Storage Used</div>
+                <div class="stat-value">{{ (actual_used / 1048576)|round(2) }} MB</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ (actual_used / quota_bytes * 100)|round(0) }}%"></div>
+                </div>
+                <div style="font-size: 12px; color: var(--text-secondary); margin-top: 5px;">of {{ quota_mb }} MB</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <svg class="icon" style="width: 32px; height: 32px;" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" x2="12" y1="22" y2="12"/></svg>
+                </div>
+                <div class="stat-label">Total Uploaded</div>
+                <div class="stat-value">{{ (original_uploaded / 1048576)|round(2) }} MB</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <svg class="icon" style="width: 32px; height: 32px;" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <div class="stat-label">Space Saved</div>
+                <div class="stat-value">{{ (saved_space / 1048576)|round(2) }} MB</div>
+                <div style="font-size: 12px; color: var(--success); margin-top: 5px; font-weight: 600;">{{ savings_percent|round(1) }}% savings</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <svg class="icon" style="width: 32px; height: 32px;" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2z"/></svg>
+                </div>
+                <div class="stat-label">Total Files</div>
+                <div class="stat-value">{{ files|length }}</div>
+            </div>
         </div>
 
-        <div class="create-folder">
-            <h3>Create New Folder</h3>
-            <form action="/create_folder" method="post">
-                <input type="text" name="folder_name" placeholder="e.g. photos/vacation, documents/work, music/2025" required style="width:500px;">
-                <button type="submit" class="btn" style="background:#9b59b6;">Create Folder</button>
-            </form>
-        </div>
-
-        <div style="margin-bottom: 40px;">
-            <div class="dropzone" id="dropzone">📁 Drag & Drop Files Here</div>
-            <div style="text-align:center; margin:20px 0;">
-                <button type="button" id="chooseBtn" class="btn" style="background:#3498db;">📂 Choose Files</button>
-                <button type="button" id="uploadBtn" class="btn" style="background:#27ae60;">⬆️ Upload Files</button>
-                <label style="margin-left:20px; font-weight: bold;">Upload to folder:</label>
-                <select id="folderSelect" style="margin-left:10px;">
+        <div class="upload-section">
+            <h3 style="margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                Upload Files
+            </h3>
+            <div class="dropzone" id="dropzone">
+                <div class="dropzone-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/></svg>
+                </div>
+                <div><strong>Drag & Drop Multiple Files Here</strong></div>
+                <div style="color: var(--text-secondary); margin-top: 10px;">Files will stack here as you drop them</div>
+            </div>
+            <div id="dropzoneFileList" class="dropzone-file-list" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <strong>Selected Files <span class="file-count-badge" id="fileCountBadge">0</span></strong>
+                    <button type="button" class="btn btn-sm btn-danger" onclick="clearAllFiles()">
+                        <svg class="icon" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                        Clear All
+                    </button>
+                </div>
+                <div id="fileListContainer"></div>
+            </div>
+            <div class="upload-controls">
+                <button type="button" id="chooseBtn" class="btn btn-secondary">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                    Choose Files
+                </button>
+                <select id="folderSelect">
                     <option value="/">Root (/)</option>
                     {% set unique_folders = [] %}
                     {% for file in files %}
@@ -72,166 +991,516 @@
                         {% endif %}
                     {% endfor %}
                 </select>
+                <button type="button" id="uploadBtn" class="btn btn-primary">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/><path d="M12 9v12"/></svg>
+                    Upload
+                </button>
             </div>
             <input type="file" id="fileInput" multiple style="display:none;">
-            <progress id="progressBar" value="0" max="100" style="display:none;"></progress>
-            <div id="messages" style="margin-top:15px; min-height:40px; font-weight:bold;"></div>
+            <progress id="progressBar" value="0" max="100" style="width: 100%; height: 8px; margin-top: 15px; display: none; border-radius: 4px;"></progress>
+            <div id="messages"></div>
         </div>
 
-        {% set folders = {} %}
-        {% for file in files if not file.filename.startswith(".folder_marker") %}
-            {% if file.folder not in folders %}
-                {% set _ = folders.update({file.folder: []}) %}
-            {% endif %}
-            {% set _ = folders[file.folder].append(file) %}
-        {% endfor %}
+        <div class="upload-section">
+            <h3 style="margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" x2="12" y1="11" y2="17"/><line x1="9" x2="15" y1="14" y2="14"/></svg>
+                Create New Folder
+            </h3>
+            <form action="/create_folder" method="post" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <input type="text" name="folder_name" class="share-input" placeholder="e.g. photos/vacation, documents/work" required style="flex: 1; min-width: 300px; margin: 0;">
+                <button type="submit" class="btn btn-primary">Create Folder</button>
+            </form>
+        </div>
 
-        {% if folders|length == 0 %}
-            <p style="text-align:center; font-size:18px; color:#777;">No files uploaded yet. Create a folder or upload some files to get started!</p>
-        {% else %}
-            {% for folder_path, folder_files in folders|dictsort %}
-                <div class="folder-header">
-                    📁 {{ folder_path.rstrip("/") if folder_path != "/" else "Root Folder (/)" }} ({{ folder_files|length }} file{{ "s" if folder_files|length != 1 else "" }})
+        <div class="search-filter-section">
+            <h3 style="margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>
+                Search & Filter
+            </h3>
+            <div class="search-container">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search files by name...">
+                <div class="filter-group">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="images">
+                        <svg class="icon" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                        Images
+                    </button>
+                    <button class="filter-btn" data-filter="documents">
+                        <svg class="icon" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        Documents
+                    </button>
+                    <button class="filter-btn" data-filter="videos">
+                        <svg class="icon" viewBox="0 0 24 24"><rect width="18" height="14" x="3" y="5" rx="2" ry="2"/><polygon points="10 9 15 12 10 15 10 9"/></svg>
+                        Videos
+                    </button>
+                    <button class="filter-btn" data-filter="audio">
+                        <svg class="icon" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                        Audio
+                    </button>
                 </div>
-                <table>
-                    <tr>
-                        <th>File Name</th>
-                        <th>Size</th>
-                        <th>Status</th>
-                        <th>Upload Date</th>
-                        <th>Downloads</th>
-                        <th>Public Link</th>
-                        <th>Share with User</th>
-                        <th>Public Share</th>
-                        <th>Actions</th>
-                    </tr>
-                    {% for file in folder_files %}
-                    <tr>
-                        <td><strong>{{ file.filename }}</strong></td>
-                        <td>{{ (file.size / 1024)|round(2) }} KB</td>
-                        <td>
-                            {% if file.is_reference == 1 %}
-                                <span style="color:#f39c12; font-weight:bold;">Duplicate</span>
-                            {% else %}
-                                <span style="color:#27ae60; font-weight:bold;">Original</span>
-                            {% endif %}
-                        </td>
-                        <td>{{ file.upload_date.strftime('%b %d, %Y %H:%M') }}</td>
-                        <td><strong>{{ file.download_count }}</strong></td>
-                        <td>
-                            {% if file.is_public == 1 %}
-                                <a href="/public/{{ file.share_token }}" target="_blank" class="public-link">
-                                    Click to Download ({{ file.download_count }} downloads)
-                                </a>
-                            {% else %}
-                                <span style="color:#999;">Private</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <form action="/share_with_user" method="post" style="display:inline;">
-                                <input type="hidden" name="file_id" value="{{ file.id }}">
-                                <input type="text" name="target_username" placeholder="username" required style="width:100px; padding:6px; font-size:13px;">
-                                <button type="submit" class="btn user-share-btn">Share</button>
-                            </form>
-                        </td>
-                        <td>
-                            <form action="/toggle_share" method="post" style="display:inline;">
-                                <input type="hidden" name="file_id" value="{{ file.id }}">
-                                <button type="submit" class="btn share-btn">
-                                    {% if file.is_public == 1 %}Unshare{% else %}Make Public{% endif %}
-                                </button>
-                            </form>
-                        </td>
-                        <td>
-                            <a href="/download/{{ file.id }}" class="btn download">Download</a>
-                            <form action="/delete" method="post" style="display:inline;">
-                                <input type="hidden" name="file_id" value="{{ file.id }}">
-                                <button type="submit" class="btn delete" onclick="return confirm('Permanently delete {{ file.filename }}?');">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </table>
-            {% endfor %}
-        {% endif %}
-
-        {% if shared_files|length > 0 %}
-            <div class="shared-section">
-                <h2 style="margin-top:0;">📬 Files Shared with Me ({{ shared_files|length }})</h2>
-                <table>
-                    <tr>
-                        <th>File Name</th>
-                        <th>Size</th>
-                        <th>Shared By</th>
-                        <th>Upload Date</th>
-                        <th>Actions</th>
-                    </tr>
-                    {% for file in shared_files %}
-                    <tr style="background:#fffef0;">
-                        <td><strong>{{ file.filename }}</strong> (shared)</td>
-                        <td>{{ (file.size / 1024)|round(2) }} KB</td>
-                        <td>{{ file.username }}</td>
-                        <td>{{ file.upload_date.strftime('%b %d, %Y %H:%M') }}</td>
-                        <td>
-                            <a href="/download/{{ file.id }}" class="btn download">Download</a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </table>
+                <select class="sort-dropdown" id="sortSelect">
+                    <option value="name-asc">Name (A-Z)</option>
+                    <option value="name-desc">Name (Z-A)</option>
+                    <option value="date-desc">Date (Newest)</option>
+                    <option value="date-asc">Date (Oldest)</option>
+                    <option value="size-desc">Size (Largest)</option>
+                    <option value="size-asc">Size (Smallest)</option>
+                </select>
             </div>
-        {% endif %}
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="my-files">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2z"/></svg>
+                My Files
+            </button>
+            <button class="tab" data-tab="shared-with-me">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                Shared With Me
+            </button>
+            <button class="tab" data-tab="shared-by-me">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/></svg>
+                Shared By Me
+            </button>
+        </div>
+
+        <div class="tab-content active" id="my-files">
+            {% set folders = {} %}
+            {% for file in files if not file.filename.startswith(".folder_marker") %}
+                {% if file.folder not in folders %}
+                    {% set _ = folders.update({file.folder: []}) %}
+                {% endif %}
+                {% set _ = folders[file.folder].append(file) %}
+            {% endfor %}
+
+            {% if folders|length == 0 %}
+                <div class="no-results">
+                    <div class="no-results-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                    </div>
+                    <h3>No files yet</h3>
+                    <p>Upload some files to get started!</p>
+                </div>
+            {% else %}
+                {% for folder_path, folder_files in folders|dictsort %}
+                    <div class="folder-section" data-folder="{{ folder_path }}">
+                        <div class="folder-header">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <svg class="icon" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2z"/></svg>
+                                {{ folder_path.rstrip("/") if folder_path != "/" else "Root Folder" }} ({{ folder_files|length }} files)
+                            </div>
+                            <div class="select-all-container">
+                                <input type="checkbox" class="select-all-folder" data-folder="{{ folder_path }}">
+                                <span>Select All</span>
+                            </div>
+                        </div>
+                        
+                        {% for file in folder_files %}
+                        <div class="file-row" 
+                             data-file-id="{{ file.id }}"
+                             data-filename="{{ file.filename }}"
+                             data-filetype="{{ 'images' if file.filename.split('.')[-1].lower() in ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'] else 'documents' if file.filename.split('.')[-1].lower() in ['pdf', 'doc', 'docx', 'txt', 'xls', 'xlsx', 'ppt', 'pptx'] else 'videos' if file.filename.split('.')[-1].lower() in ['mp4', 'avi', 'mov', 'wmv', 'flv', 'webm'] else 'audio' if file.filename.split('.')[-1].lower() in ['mp3', 'wav', 'ogg', 'flac', 'aac'] else 'other' }}"
+                             data-date="{{ file.upload_date.isoformat() }}"
+                             data-size="{{ file.size }}">
+                            
+                            <input type="checkbox" class="file-checkbox" data-file-id="{{ file.id }}">
+                            
+                            <div class="file-header-row">
+                                <div class="file-info-left">
+                                    <div class="file-icon-big">
+                                        <svg class="icon" style="width: 24px; height: 24px;" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                    </div>
+                                    <div class="file-details">
+                                        <div class="file-name-big">{{ file.filename }}</div>
+                                        <div class="file-meta-row">
+                                            <span>{{ (file.size / 1024)|round(2) }} KB</span>
+                                            <span>{{ file.upload_date.strftime('%b %d, %Y') }}</span>
+                                        </div>
+                                        <div class="file-badges-row">
+                                            {% if file.is_reference == 1 %}
+                                                <span class="badge badge-duplicate" onclick="showDuplicateLocations({{ file.id }})" title="Click to see all locations">
+                                                    <svg class="icon" style="width:12px; height:12px;" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                                                    Duplicate
+                                                </span>
+                                            {% else %}
+                                                <span class="badge badge-original">
+                                                    <svg class="icon" style="width:12px; height:12px;" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                                                    Original
+                                                </span>
+                                            {% endif %}
+                                            {% if file.is_public == 1 %}
+                                                <span class="badge badge-public">
+                                                    <svg class="icon" style="width:12px; height:12px;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                                                    Public
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="file-actions-row">
+                                    <button class="btn btn-sm btn-info" onclick="previewFile({{ file.id }})">
+                                        <svg class="icon" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        Preview
+                                    </button>
+                                    <a href="/download/{{ file.id }}" class="btn btn-sm btn-success">
+                                        <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                                        Download
+                                    </a>
+                                    <button class="btn btn-sm btn-warning" onclick="openShareModal({{ file.id }}, '{{ file.filename }}')">
+                                        <svg class="icon" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                        Share
+                                    </button>
+                                    <form action="/toggle_share" method="post" style="display: inline;">
+                                        <input type="hidden" name="file_id" value="{{ file.id }}">
+                                        <button type="submit" class="btn btn-sm btn-info">
+                                            {% if file.is_public == 1 %}
+                                                <svg class="icon" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Make Private
+                                            {% else %}
+                                                <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> Make Public
+                                            {% endif %}
+                                        </button>
+                                    </form>
+                                    <form id="deleteForm{{ file.id }}" action="/delete" method="post" style="display: inline;">
+                                        <input type="hidden" name="file_id" value="{{ file.id }}">
+                                        <button type="button" class="btn btn-sm btn-danger" onclick="confirmDelete({{ file.id }}, '{{ file.filename }}')">
+                                            <svg class="icon" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                            Delete
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            
+                            {% if file.is_public == 1 %}
+                            <div class="public-link-section">
+                                <strong>Public Link:</strong>
+                                <input type="text" value="{{ request.url.scheme }}://{{ request.url.netloc }}/public/{{ file.share_token }}" readonly onclick="this.select()">
+                                <div style="color: var(--text-secondary); margin-top: 8px; font-size: 12px;">Downloads: {{ file.download_count }}</div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div class="tab-content" id="shared-with-me">
+            {% if shared_with_me_files|length == 0 %}
+                <div class="no-results">
+                    <div class="no-results-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                    </div>
+                    <h3>No files shared with you</h3>
+                    <p>When someone shares a file with you, it will appear here</p>
+                </div>
+            {% else %}
+                {% for file in shared_with_me_files %}
+                <div class="file-row" style="border-left: 4px solid var(--warning);">
+                    <div class="file-header-row" style="margin-left: 0;">
+                        <div class="file-info-left">
+                            <div class="file-icon-big">
+                                <svg class="icon" style="width: 24px; height: 24px;" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                            </div>
+                            <div class="file-details">
+                                <div class="file-name-big">{{ file.filename }}</div>
+                                <div class="file-meta-row">
+                                    <span>{{ (file.size / 1024)|round(2) }} KB</span>
+                                    <span>Shared by: <strong>{{ file.username }}</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="file-actions-row">
+                            <button class="btn btn-sm btn-info" onclick="previewFile({{ file.id }})">
+                                <svg class="icon" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                                Preview
+                            </button>
+                            <a href="/download/{{ file.id }}" class="btn btn-sm btn-success">
+                                <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                                Download
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div class="tab-content" id="shared-by-me">
+            {% if shared_by_me|length == 0 %}
+                <div class="no-results">
+                    <div class="no-results-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/></svg>
+                    </div>
+                    <h3>You haven't shared any files yet</h3>
+                    <p>Share files with other users using the Share button</p>
+                </div>
+            {% else %}
+                {% for item in shared_by_me %}
+                <div class="file-row" style="border-left: 4px solid var(--success);">
+                    <div class="file-header-row" style="margin-left: 0;">
+                        <div class="file-info-left">
+                            <div class="file-icon-big">
+                                <svg class="icon" style="width: 24px; height: 24px;" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                            </div>
+                            <div class="file-details">
+                                <div class="file-name-big">{{ item.file.filename }}</div>
+                                <div class="file-meta-row">
+                                    <span>{{ (item.file.size / 1024)|round(2) }} KB</span>
+                                    <span>{{ item.file.upload_date.strftime('%b %d, %Y') }}</span>
+                                </div>
+                                <div style="margin-top: 10px;">
+                                    <span style="font-size: 12px; color: var(--text-secondary); font-weight: 600;">Shared with:</span>
+                                    {% for recipient in item.shared_with %}
+                                        <span class="badge" style="background: var(--success); color: white; margin-left: 5px;">
+                                            <svg class="icon" style="width:10px; height:10px;" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                            {{ recipient }}
+                                        </span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="file-actions-row">
+                            <button class="btn btn-sm btn-info" onclick="previewFile({{ item.file.id }})">
+                                <svg class="icon" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                                Preview
+                            </button>
+                            <a href="/download/{{ item.file.id }}" class="btn btn-sm btn-success">
+                                <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                                Download
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Bulk Actions Bar -->
+    <div class="bulk-actions-bar">
+        <span><span class="bulk-count">0</span> files selected</span>
+        <button class="btn btn-sm btn-danger" onclick="bulkDeleteSelected()">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+            Delete Selected
+        </button>
+        <button class="btn btn-sm btn-secondary" onclick="clearSelection()">Clear Selection</button>
+    </div>
+
+    <!-- Delete Modal -->
+    <div class="modal" id="deleteModal">
+        <div class="delete-modal-content">
+            <div class="delete-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
+            </div>
+            <h2>Delete File?</h2>
+            <p>Are you sure you want to delete this file?</p>
+            <div class="delete-filename" id="deleteFileName"></div>
+            <div class="delete-actions">
+                <button class="btn-cancel" onclick="closeModal('deleteModal')">Cancel</button>
+                <button class="btn-confirm-delete" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div class="modal" id="shareModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('shareModal')">×</button>
+            <h2 style="margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                Share File
+            </h2>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">Sharing: <strong id="shareFileName"></strong></p>
+            <form action="/share_with_user" method="post" id="shareForm">
+                <input type="hidden" name="file_id" id="shareFileId">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Enter username:</label>
+                <input type="text" name="target_username" class="share-input" placeholder="username" required>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 15px;">Share File</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div class="modal" id="previewModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('previewModal')">×</button>
+            <h2 style="margin-bottom: 20px;" id="previewFileName">File Preview</h2>
+            <div class="preview-container" id="previewContainer">
+                <div style="color: var(--text-secondary);">Loading preview...</div>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <a id="previewDownloadBtn" class="btn btn-primary" download>
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                    Download File
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Duplicate Locations Modal -->
+    <div class="modal" id="duplicateModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('duplicateModal')">×</button>
+            <h2 style="margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2z"/></svg>
+                Duplicate File Locations
+            </h2>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">This file exists in multiple locations:</p>
+            <div id="duplicateLocations"></div>
+        </div>
     </div>
 
     <script>
-        const dropzone = document.getElementById("dropzone");
-        const fileInput = document.getElementById("fileInput");
-        const chooseBtn = document.getElementById("chooseBtn");
-        const uploadBtn = document.getElementById("uploadBtn");
-        const progressBar = document.getElementById("progressBar");
-        const messages = document.getElementById("messages");
-        const folderSelect = document.getElementById("folderSelect");
+        const sunIcon = `<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" x2="12" y1="1" y2="3"/><line x1="12" x2="12" y1="21" y2="23"/><line x1="4.22" x2="5.64" y1="4.22" y2="5.64"/><line x1="18.36" x2="19.78" y1="18.36" y2="19.78"/><line x1="1" x2="3" y1="12" y2="12"/><line x1="21" x2="23" y1="12" y2="12"/><line x1="4.22" x2="5.64" y1="19.78" y2="18.36"/><line x1="18.36" x2="19.78" y1="5.64" y2="4.22"/></svg>`;
+        const moonIcon = `<svg class="icon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>`;
+
+        // Theme Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const html = document.documentElement;
+
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        html.setAttribute('data-theme', savedTheme);
+        themeToggle.innerHTML = savedTheme === 'dark' ? sunIcon : moonIcon;
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            themeToggle.innerHTML = newTheme === 'dark' ? sunIcon : moonIcon;
+        });
+
+        // Tab Switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Hash navigation for preventing scroll to top
+        window.addEventListener('load', () => {
+            if (window.location.hash === '#my-files') {
+                const myFilesTab = document.querySelector('.tab[data-tab="my-files"]');
+                if (myFilesTab) myFilesTab.click();
+            }
+        });
+
+        // Multiple Drag and Drop with Stacking
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+        const chooseBtn = document.getElementById('chooseBtn');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const progressBar = document.getElementById('progressBar');
+        const messages = document.getElementById('messages');
+        const folderSelect = document.getElementById('folderSelect');
+        const dropzoneFileList = document.getElementById('dropzoneFileList');
+        const fileListContainer = document.getElementById('fileListContainer');
+        const fileCountBadge = document.getElementById('fileCountBadge');
 
         let filesToUpload = [];
 
-        // Choose files button
         chooseBtn.onclick = () => fileInput.click();
 
-        // Drag and drop handlers
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        dropzone.addEventListener("dragenter", e => { 
+            e.preventDefault(); 
+            dropzone.classList.add("dragover"); 
+        });
+
         dropzone.addEventListener("dragover", e => { 
             e.preventDefault(); 
             dropzone.classList.add("dragover"); 
         });
         
-        dropzone.addEventListener("dragleave", () => {
-            dropzone.classList.remove("dragover");
+        dropzone.addEventListener("dragleave", (e) => {
+            if (e.target === dropzone) {
+                dropzone.classList.remove("dragover");
+            }
         });
         
         dropzone.addEventListener("drop", e => {
             e.preventDefault();
             dropzone.classList.remove("dragover");
-            filesToUpload = Array.from(e.dataTransfer.files);
-            updateMessage();
+            
+            const droppedFiles = Array.from(e.dataTransfer.files);
+            
+            droppedFiles.forEach(file => {
+                const exists = filesToUpload.some(f => f.name === file.name && f.size === file.size);
+                if (!exists) {
+                    filesToUpload.push(file);
+                }
+            });
+            
+            updateFileList();
         });
 
-        // File input change handler
         fileInput.addEventListener("change", () => {
-            filesToUpload = Array.from(fileInput.files);
-            updateMessage();
+            const selectedFiles = Array.from(fileInput.files);
+            
+            selectedFiles.forEach(file => {
+                const exists = filesToUpload.some(f => f.name === file.name && f.size === file.size);
+                if (!exists) {
+                    filesToUpload.push(file);
+                }
+            });
+            
+            updateFileList();
+            fileInput.value = "";
         });
 
-        function updateMessage() {
+        function updateFileList() {
             if (filesToUpload.length > 0) {
+                dropzoneFileList.style.display = 'block';
+                fileCountBadge.textContent = filesToUpload.length;
+                
+                fileListContainer.innerHTML = filesToUpload.map((file, index) => `
+                    <div class="dropzone-file-item">
+                        <svg class="icon" style="width: 24px; height: 24px; color: var(--accent-primary);" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600;">${file.name}</div>
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">
+                                ${(file.size / 1024).toFixed(2)} KB
+                            </div>
+                        </div>
+                        <button class="file-remove" onclick="removeFile(${index})" title="Remove file">×</button>
+                    </div>
+                `).join('');
+                
                 const folderName = folderSelect.options[folderSelect.selectedIndex].text;
-                messages.innerHTML = `<p style="color:#2c3e50;"><strong>${filesToUpload.length}</strong> file${filesToUpload.length > 1 ? 's' : ''} selected → Ready to upload to <strong>${folderName}</strong></p>`;
+                messages.innerHTML = `<div style="padding: 12px; background: #e3f2fd; border-radius: 8px; color: #1565c0;"><strong>${filesToUpload.length}</strong> file${filesToUpload.length > 1 ? 's' : ''} ready to upload to <strong>${folderName}</strong></div>`;
             } else {
+                dropzoneFileList.style.display = 'none';
                 messages.innerHTML = "";
             }
         }
 
-        // Update message when folder selection changes
-        folderSelect.addEventListener("change", updateMessage);
+        function removeFile(index) {
+            filesToUpload.splice(index, 1);
+            updateFileList();
+        }
 
-        // Upload handler
+        function clearAllFiles() {
+            if (filesToUpload.length > 0 && confirm(`Clear all ${filesToUpload.length} file(s)?`)) {
+                filesToUpload = [];
+                fileInput.value = "";
+                updateFileList();
+            }
+        }
+
+        folderSelect.addEventListener("change", updateFileList);
+
         uploadBtn.addEventListener("click", async () => {
             if (filesToUpload.length === 0) {
                 alert("Please select at least one file!");
@@ -245,7 +1514,7 @@
             try {
                 progressBar.style.display = "block";
                 progressBar.value = 0;
-                messages.innerHTML = `<p style="color:#2c3e50;">Uploading ${filesToUpload.length} file${filesToUpload.length > 1 ? 's' : ''}...</p>`;
+                messages.innerHTML = '<div style="padding: 12px; background: #e3f2fd; border-radius: 8px; color: #1565c0;">Uploading files...</div>';
                 uploadBtn.disabled = true;
 
                 const response = await fetch("/upload", {
@@ -257,32 +1526,35 @@
                 
                 if (!response.ok) {
                     const errorData = await response.json();
-                    messages.innerHTML = `<p style="color:red; font-weight:bold;">Upload failed: ${errorData.error || 'Server error'}</p>`;
+                    if (response.status === 401) {
+                        alert("Session expired. Please login again.");
+                        window.location.href = "/login";
+                        return;
+                    }
+                    messages.innerHTML = `<div class="message-error">Upload failed: ${errorData.error || 'Server error'}</div>`;
                     return;
                 }
 
                 const result = await response.json();
                 
                 if (result.error) {
-                    messages.innerHTML = `<p style="color:red; font-weight:bold;">Error: ${result.error}</p>`;
+                    messages.innerHTML = `<div class="message-error">${result.error}</div>`;
                     return;
                 }
 
-                // Success
-                messages.innerHTML = `<p style="color:green; font-weight:bold;">✓ All files uploaded successfully!</p>`;
+                messages.innerHTML = '<div class="message-success">All files uploaded successfully!</div>';
                 result.results.forEach(r => {
-                    messages.innerHTML += `<p style="margin-left:20px;">• ${r.filename}: <span style="color:green;">${r.message}</span></p>`;
+                    messages.innerHTML += `<div style="padding: 8px; margin-top: 5px; background: var(--bg-primary); border-radius: 6px;">• ${r.filename}: <span style="color: var(--success);">${r.message}</span></div>`;
                 });
 
-                // Reset form
                 filesToUpload = [];
                 fileInput.value = "";
+                dropzoneFileList.innerHTML = "";
                 
-                // Reload page after 2 seconds
-                setTimeout(() => location.reload(), 2000);
+                setTimeout(() => location.reload(), 1500);
 
             } catch (error) {
-                messages.innerHTML = `<p style="color:red; font-weight:bold;">Upload failed: ${error.message}</p>`;
+                messages.innerHTML = `<div class="message-error">Upload failed: ${error.message}</div>`;
                 console.error("Upload error:", error);
             } finally {
                 progressBar.style.display = "none";
@@ -290,16 +1562,316 @@
             }
         });
 
-        // Auto-logout on close (optional - you might want to remove this)
-        window.addEventListener("beforeunload", () => {
-            navigator.sendBeacon("/logout");
+        // Search & Filter
+        const searchInput = document.getElementById('searchInput');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const sortSelect = document.getElementById('sortSelect');
+        let currentFilter = 'all';
+        let currentSort = 'name-asc';
+
+        searchInput.addEventListener('input', filterAndSort);
+        sortSelect.addEventListener('change', (e) => {
+            currentSort = e.target.value;
+            filterAndSort();
         });
-        
-        document.addEventListener("visibilitychange", () => {
-            if (document.visibilityState === "hidden") {
-                navigator.sendBeacon("/logout");
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.dataset.filter;
+                filterAndSort();
+            });
+        });
+
+        function filterAndSort() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const fileRows = document.querySelectorAll('#my-files .file-row');
+            
+            let visibleCount = 0;
+            fileRows.forEach(row => {
+                const filename = row.dataset.filename.toLowerCase();
+                const fileType = row.dataset.filetype;
+                
+                const matchesSearch = filename.includes(searchTerm);
+                const matchesFilter = currentFilter === 'all' || fileType === currentFilter;
+                
+                if (matchesSearch && matchesFilter) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            const myFilesTab = document.getElementById('my-files');
+            let noResults = myFilesTab.querySelector('.no-results-search');
+            
+            if (visibleCount === 0 && fileRows.length > 0) {
+                if (!noResults) {
+                    noResults = document.createElement('div');
+                    noResults.className = 'no-results no-results-search';
+                    noResults.innerHTML = `
+                        <div class="no-results-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>
+                        </div>
+                        <h3>No files found</h3>
+                        <p>Try adjusting your search or filter</p>
+                    `;
+                    myFilesTab.appendChild(noResults);
+                }
+                noResults.style.display = 'block';
+            } else if (noResults) {
+                noResults.style.display = 'none';
             }
+            
+            sortFiles();
+        }
+
+        function sortFiles() {
+            const folderSections = document.querySelectorAll('.folder-section');
+            
+            folderSections.forEach(section => {
+                const fileRows = Array.from(section.querySelectorAll('.file-row'));
+                
+                fileRows.sort((a, b) => {
+                    const [criteria, order] = currentSort.split('-');
+                    
+                    let comparison = 0;
+                    if (criteria === 'name') {
+                        comparison = a.dataset.filename.localeCompare(b.dataset.filename);
+                    } else if (criteria === 'date') {
+                        comparison = new Date(a.dataset.date) - new Date(b.dataset.date);
+                    } else if (criteria === 'size') {
+                        comparison = parseFloat(a.dataset.size) - parseFloat(b.dataset.size);
+                    }
+                    
+                    return order === 'asc' ? comparison : -comparison;
+                });
+                
+                fileRows.forEach(row => {
+                    section.appendChild(row);
+                });
+            });
+        }
+
+        // Bulk Selection
+        const bulkActionsBar = document.querySelector('.bulk-actions-bar');
+        const bulkCount = document.querySelector('.bulk-count');
+        let selectedFiles = new Set();
+
+        function updateBulkActions() {
+            if (selectedFiles.size > 0) {
+                bulkActionsBar.classList.add('active');
+                bulkCount.textContent = selectedFiles.size;
+            } else {
+                bulkActionsBar.classList.remove('active');
+            }
+        }
+
+        document.querySelectorAll('.select-all-folder').forEach(checkbox => {
+            checkbox.addEventListener('change', (e) => {
+                const folder = e.target.dataset.folder;
+                const folderSection = document.querySelector(`.folder-section[data-folder="${folder}"]`);
+                const checkboxes = folderSection.querySelectorAll('.file-checkbox');
+                
+                checkboxes.forEach(cb => {
+                    cb.checked = e.target.checked;
+                    const fileId = parseInt(cb.dataset.fileId);
+                    const fileRow = cb.closest('.file-row');
+                    
+                    if (e.target.checked) {
+                        selectedFiles.add(fileId);
+                        fileRow.classList.add('selected');
+                    } else {
+                        selectedFiles.delete(fileId);
+                        fileRow.classList.remove('selected');
+                    }
+                });
+                updateBulkActions();
+            });
+        });
+
+        document.querySelectorAll('.file-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', (e) => {
+                const fileId = parseInt(e.target.dataset.fileId);
+                const fileRow = e.target.closest('.file-row');
+                
+                if (e.target.checked) {
+                    selectedFiles.add(fileId);
+                    fileRow.classList.add('selected');
+                } else {
+                    selectedFiles.delete(fileId);
+                    fileRow.classList.remove('selected');
+                }
+                updateBulkActions();
+            });
+        });
+
+        async function bulkDeleteSelected() {
+            if (selectedFiles.size === 0) return;
+            
+            if (!confirm(`Delete ${selectedFiles.size} selected file(s)?`)) return;
+            
+            try {
+                const response = await fetch('/bulk_delete', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({file_ids: Array.from(selectedFiles)})
+                });
+                
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    const data = await response.json();
+                    if (response.status === 401) {
+                        alert("Session expired. Please login again.");
+                        window.location.href = "/login";
+                        return;
+                    }
+                    alert('Delete failed: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('Delete failed: ' + error.message);
+            }
+        }
+
+        function clearSelection() {
+            document.querySelectorAll('.file-checkbox').forEach(cb => {
+                cb.checked = false;
+                cb.closest('.file-row').classList.remove('selected');
+            });
+            document.querySelectorAll('.select-all-folder').forEach(cb => {
+                cb.checked = false;
+            });
+            selectedFiles.clear();
+            updateBulkActions();
+        }
+
+        // Delete Confirmation
+        let currentDeleteFormId = null;
+
+        function confirmDelete(fileId, filename) {
+            currentDeleteFormId = fileId;
+            document.getElementById('deleteFileName').textContent = filename;
+            openModal('deleteModal');
+        }
+
+        document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
+            if (currentDeleteFormId) {
+                document.getElementById('deleteForm' + currentDeleteFormId).submit();
+            }
+        });
+
+        // Modal Functions
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            if (modalId === 'deleteModal') {
+                currentDeleteFormId = null;
+            }
+        }
+
+        function openShareModal(fileId, fileName) {
+            document.getElementById('shareFileId').value = fileId;
+            document.getElementById('shareFileName').textContent = fileName;
+            openModal('shareModal');
+        }
+
+        async function previewFile(fileId) {
+            try {
+                const response = await fetch(`/api/file/preview/${fileId}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        alert("Session expired. Please login again.");
+                        window.location.href = "/login";
+                        return;
+                    }
+                    alert(data.error || 'Failed to load preview');
+                    return;
+                }
+
+                document.getElementById('previewFileName').textContent = data.filename;
+                document.getElementById('previewDownloadBtn').href = data.download_url;
+                
+                const container = document.getElementById('previewContainer');
+                
+                if (data.type === 'image') {
+                    container.innerHTML = `<img src="${data.download_url}" alt="${data.filename}" style="max-width: 100%; border-radius: 8px;">`;
+                } else if (data.type === 'text') {
+                    container.innerHTML = '<div style="color: var(--text-secondary);">Text preview not available. Please download to view.</div>';
+                } else if (data.type === 'pdf') {
+                    container.innerHTML = `<div style="color: var(--text-secondary); padding: 20px;"><svg class="icon" style="width:48px; height:48px; color: var(--accent-primary);" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg><br><br><strong>PDF File</strong><br>Click download to view this PDF file.</div>`;
+                } else if (data.type === 'video') {
+                    container.innerHTML = `<video controls style="max-width: 100%; border-radius: 8px;"><source src="${data.download_url}"></video>`;
+                } else if (data.type === 'audio') {
+                    container.innerHTML = `<audio controls style="width: 100%;"><source src="${data.download_url}"></audio>`;
+                } else {
+                    container.innerHTML = `<div style="color: var(--text-secondary); padding: 20px;"><svg class="icon" style="width:48px; height:48px; color: var(--accent-primary);" viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg><br><br><strong>${data.extension.toUpperCase()} File</strong><br>Preview not available for this file type.<br>Click download to view.</div>`;
+                }
+
+                openModal('previewModal');
+            } catch (error) {
+                alert('Failed to load preview: ' + error.message);
+            }
+        }
+
+        async function showDuplicateLocations(fileId) {
+            try {
+                const response = await fetch(`/api/file/duplicate-locations/${fileId}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        alert("Session expired. Please login again.");
+                        window.location.href = "/login";
+                        return;
+                    }
+                    alert(data.error || 'Failed to load locations');
+                    return;
+                }
+
+                const container = document.getElementById('duplicateLocations');
+                
+                if (data.locations.length === 0) {
+                    container.innerHTML = '<div style="color: var(--text-secondary);">No duplicates found.</div>';
+                } else {
+                    container.innerHTML = data.locations.map(loc => `
+                        <div style="padding: 15px; margin-bottom: 10px; background: ${loc.is_current ? 'var(--accent-primary)' : 'var(--bg-primary)'}; color: ${loc.is_current ? 'white' : 'var(--text-primary)'}; border-radius: 8px; border-left: 4px solid var(--accent-primary);">
+                            <div style="font-weight: 600; margin-bottom: 5px; display: flex; align-items: center; gap: 6px;">
+                                <svg class="icon" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2z"/></svg>
+                                ${loc.folder}
+                            </div>
+                            <div style="font-size: 14px; opacity: 0.9; display: flex; align-items: center; gap: 6px;">
+                                <svg class="icon" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                ${loc.filename}
+                            </div>
+                            <div style="font-size: 12px; opacity: 0.8; margin-top: 5px;">Upload date: ${loc.upload_date}</div>
+                            ${loc.is_current ? '<div style="font-size: 12px; margin-top: 5px; font-weight: 600;">Current File</div>' : ''}
+                        </div>
+                    `).join('');
+                }
+
+                openModal('duplicateModal');
+            } catch (error) {
+                alert('Failed to load duplicate locations: ' + error.message);
+            }
+        }
+
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                    if (modal.id === 'deleteModal') {
+                        currentDeleteFormId = null;
+                    }
+                }
+            });
         });
     </script>
 </body>
-</html>
