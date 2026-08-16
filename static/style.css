@@ -1,49 +1,230 @@
-/* VinnoDrive - Shared Core Styles */
+/* VinnoDrive - Executive Minimalist Design System */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
 :root {
-    --bg-primary: #f5f7fa;
-    --bg-secondary: #ffffff;
-    --bg-card: #ffffff;
-    --text-primary: #2d3748;
-    --text-secondary: #718096;
-    --border-color: #e2e8f0;
-    --accent-primary: #667eea;
-    --accent-secondary: #764ba2;
-    --success: #48bb78;
-    --danger: #f56565;
-    --warning: #ed8936;
-    --info: #4299e1;
+    /* Color Palette: Warm Slate & Sage Teal */
+    --bg-primary: #F8F9FA;
+    --bg-secondary: #FFFFFF;
+    --bg-card: #FFFFFF;
+    --bg-card-hover: #F3F4F6;
+    --bg-subtle: #F1F3F5;
+    
+    --text-primary: #181C20;
+    --text-secondary: #5E6977;
+    --text-muted: #8896A6;
+    
+    --border-color: #E2E6EB;
+    --border-subtle: #ECEEF2;
+    --border-focus: #0D9488;
+    
+    --accent-primary: #0D9488;
+    --accent-hover: #0F766E;
+    --accent-subtle: rgba(13, 148, 136, 0.08);
+    --accent-text: #0D9488;
+    
+    --success: #059669;
+    --success-bg: rgba(5, 150, 105, 0.08);
+    --warning: #D97706;
+    --warning-bg: rgba(217, 119, 6, 0.08);
+    --danger: #DC2626;
+    --danger-bg: rgba(220, 38, 38, 0.08);
+    --info: #2563EB;
+    --info-bg: rgba(37, 99, 235, 0.08);
+    --star: #D97706;
+
+    --radius-sm: 6px;
+    --radius-md: 9px;
+    --radius-lg: 14px;
+    --radius-full: 9999px;
+
+    --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+    --shadow-elevated: 0 10px 30px -5px rgba(0, 0, 0, 0.08), 0 4px 10px -3px rgba(0, 0, 0, 0.04);
+    --shadow-modal: 0 20px 45px -10px rgba(0, 0, 0, 0.16);
 }
 
 [data-theme="dark"] {
-    --bg-primary: #1a202c;
-    --bg-secondary: #2d3748;
-    --bg-card: #2d3748;
-    --text-primary: #f7fafc;
-    --text-secondary: #cbd5e0;
-    --border-color: #4a5568;
+    --bg-primary: #0F1216;
+    --bg-secondary: #161A20;
+    --bg-card: #161A20;
+    --bg-card-hover: #1C2128;
+    --bg-subtle: #1C2128;
+    
+    --text-primary: #F3F5F7;
+    --text-secondary: #9DA7B3;
+    --text-muted: #647080;
+    
+    --border-color: #272D36;
+    --border-subtle: #1E232B;
+    --border-focus: #14B8A6;
+    
+    --accent-primary: #14B8A6;
+    --accent-hover: #2DD4BF;
+    --accent-subtle: rgba(20, 184, 166, 0.12);
+    --accent-text: #2DD4BF;
+    
+    --success: #10B981;
+    --success-bg: rgba(16, 185, 129, 0.12);
+    --warning: #F59E0B;
+    --warning-bg: rgba(245, 158, 11, 0.12);
+    --danger: #EF4444;
+    --danger-bg: rgba(239, 68, 68, 0.12);
+    --info: #3B82F6;
+    --info-bg: rgba(59, 130, 246, 0.12);
+    --star: #F59E0B;
+
+    --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.35);
+    --shadow-elevated: 0 10px 30px -5px rgba(0, 0, 0, 0.45);
+    --shadow-modal: 0 20px 45px -10px rgba(0, 0, 0, 0.6);
 }
 
 *, *::before, *::after {
+    margin: 0;
+    padding: 0;
     box-sizing: border-box;
 }
 
 body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     background-color: var(--bg-primary);
     color: var(--text-primary);
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+/* Crisp Lucide SVG Icon Standard */
 .icon {
-    width: 1.1em;
-    height: 1.1em;
-    vertical-align: -0.15em;
+    width: 18px;
+    height: 18px;
+    vertical-align: -0.18em;
     display: inline-block;
     fill: none;
     stroke: currentColor;
-    stroke-width: 2;
+    stroke-width: 1.75;
     stroke-linecap: round;
     stroke-linejoin: round;
+    flex-shrink: 0;
+}
+
+.icon-sm { width: 14px; height: 14px; }
+.icon-lg { width: 22px; height: 22px; }
+.icon-xl { width: 32px; height: 32px; }
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s ease-in-out;
+    white-space: nowrap;
+    user-select: none;
+}
+
+.btn-sm {
+    padding: 5px 10px;
+    font-size: 12px;
+    gap: 5px;
+}
+
+.btn-primary {
+    background-color: var(--accent-primary);
+    color: #FFFFFF;
+}
+.btn-primary:hover {
+    background-color: var(--accent-hover);
+}
+
+.btn-secondary {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+.btn-secondary:hover {
+    background-color: var(--bg-card-hover);
+    border-color: var(--text-muted);
+}
+
+.btn-danger {
+    background-color: var(--danger-bg);
+    color: var(--danger);
+    border-color: transparent;
+}
+.btn-danger:hover {
+    background-color: var(--danger);
+    color: #FFFFFF;
+}
+
+.btn-success {
+    background-color: var(--success-bg);
+    color: var(--success);
+}
+.btn-success:hover {
+    background-color: var(--success);
+    color: #FFFFFF;
+}
+
+.btn-warning {
+    background-color: var(--warning-bg);
+    color: var(--warning);
+}
+.btn-warning:hover {
+    background-color: var(--warning);
+    color: #FFFFFF;
+}
+
+.btn-info {
+    background-color: var(--info-bg);
+    color: var(--info);
+}
+.btn-info:hover {
+    background-color: var(--info);
+    color: #FFFFFF;
+}
+
+/* Badges */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: capitalize;
+    letter-spacing: 0.2px;
+}
+
+.badge-original {
+    background-color: var(--accent-subtle);
+    color: var(--accent-text);
+    border: 1px solid rgba(13, 148, 136, 0.2);
+}
+
+.badge-duplicate {
+    background-color: var(--warning-bg);
+    color: var(--warning);
+    border: 1px solid rgba(217, 119, 6, 0.2);
+}
+
+.badge-version {
+    background-color: var(--bg-subtle);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+.badge-tag {
+    background-color: var(--bg-subtle);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
 }

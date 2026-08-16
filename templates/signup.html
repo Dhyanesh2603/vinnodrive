@@ -1,350 +1,168 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up - VinnoDrive</title>
+    <title>Create Account - VinnoDrive</title>
+    <link rel="stylesheet" href="/static/style.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #2f6281 0%, #33634a 100%);
+        .auth-container {
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
-            overflow: hidden;
+            padding: 24px;
+            background-color: var(--bg-primary);
         }
 
-        .bg-animation {
-            position: absolute;
+        .auth-card {
             width: 100%;
-            height: 100%;
-            overflow: hidden;
-            z-index: 0;
+            max-width: 400px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 36px 32px;
+            box-shadow: var(--shadow-card);
         }
 
-        .shape {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-        }
-
-        .shape1 {
-            width: 300px;
-            height: 300px;
-            top: -100px;
-            right: -100px;
-            animation: float1 20s infinite;
-        }
-
-        .shape2 {
-            width: 200px;
-            height: 200px;
-            bottom: -50px;
-            left: -50px;
-            animation: float2 15s infinite;
-        }
-
-        .shape3 {
-            width: 150px;
-            height: 150px;
-            top: 50%;
-            left: 10%;
-            animation: float3 18s infinite;
-        }
-
-        @keyframes float1 {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(100px, 100px) scale(1.2); }
-        }
-
-        @keyframes float2 {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(-80px, -80px) scale(0.8); }
-        }
-
-        @keyframes float3 {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(50px, -50px) scale(1.1); }
-        }
-
-        .signup-container {
-            position: relative;
-            z-index: 10;
-            background: white;
-            padding: 50px 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            width: 100%;
-            max-width: 420px;
-            animation: slideUp 0.6s ease-out;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .logo-small {
+        .auth-header {
             text-align: center;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: center;
-            color: #488eb7;
+            margin-bottom: 28px;
         }
 
-        .signup-container h2 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 28px;
-        }
-
-        .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
-
-        .error {
-            background: #fee;
-            color: #c33;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            text-align: center;
-            border-left: 4px solid #c33;
-            font-size: 14px;
-        }
-
-        .input-group {
-            margin-bottom: 25px;
-            position: relative;
-        }
-
-        .input-group label {
-            display: block;
-            color: #555;
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .input-group input {
-            width: 100%;
-            padding: 14px 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            background: #f9f9f9;
-        }
-
-        .input-group input:focus {
-            outline: none;
-            border-color: #4f76a3;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(245, 87, 108, 0.1);
-        }
-
-        .password-strength {
-            height: 4px;
-            background: #e0e0e0;
-            border-radius: 2px;
-            margin-top: 8px;
-            overflow: hidden;
-        }
-
-        .password-strength-bar {
-            height: 100%;
-            width: 0;
-            transition: all 0.3s ease;
-            border-radius: 2px;
-        }
-
-        .btn-submit {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, #87e6b0 0%, #488eb7 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            box-shadow: 0 4px 15px rgba(231, 132, 71, 0.4);
-        }
-
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(62, 156, 190, 0.6);
-        }
-
-        .btn-submit:active {
-            transform: translateY(0);
-        }
-
-        .divider {
-            text-align: center;
-            margin: 30px 0;
-            position: relative;
-        }
-
-        .divider::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: #e0e0e0;
-        }
-
-        .divider span {
-            background: white;
-            padding: 0 15px;
-            position: relative;
-            color: #999;
-            font-size: 14px;
-        }
-
-        .login-link {
-            text-align: center;
-            color: #666;
-            font-size: 14px;
-        }
-
-        .login-link a {
-            color: #5fc69a;
-            text-decoration: none;
-            font-weight: 600;
-            transition: color 0.3s ease;
-        }
-
-        .login-link a:hover {
-            color: #3887ae;
-            text-decoration: underline;
-        }
-
-        .back-home {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .back-home a {
-            color: #999;
-            text-decoration: none;
-            font-size: 14px;
-            transition: color 0.3s ease;
+        .auth-logo {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text-primary);
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
+            margin-bottom: 12px;
+            text-decoration: none;
         }
 
-        .back-home a:hover {
-            color: #51b9c1;
+        .auth-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
         }
 
-        @media (max-width: 480px) {
-            .signup-container {
-                padding: 40px 30px;
-                margin: 20px;
-            }
+        .auth-sub {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 14px;
+            font-size: 14px;
+            font-family: inherit;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px var(--accent-subtle);
+        }
+
+        .auth-error {
+            background-color: var(--danger-bg);
+            color: var(--danger);
+            border: 1px solid rgba(220, 38, 38, 0.2);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
+            font-size: 13px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 11px;
+            font-size: 14px;
+            margin-top: 6px;
+        }
+
+        .auth-footer {
+            margin-top: 24px;
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border-subtle);
+            padding-top: 18px;
+        }
+
+        .auth-footer a {
+            color: var(--accent-primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .auth-footer a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
-    <div class="bg-animation">
-        <div class="shape shape1"></div>
-        <div class="shape shape2"></div>
-        <div class="shape shape3"></div>
-    </div>
-
-    <div class="signup-container">
-        <div class="logo-small">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
-        </div>
-        <h2>Create Account</h2>
-        <p class="subtitle">Get started with 10MB free storage</p>
-        
-        {% if error %}
-        <div class="error">{{ error }}</div>
-        {% endif %}
-        
-        <form method="post" action="/signup">
-            <div class="input-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" placeholder="Choose a username" required autofocus>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <a href="/" class="auth-logo">
+                    <svg class="icon icon-lg" style="color: var(--accent-primary);" viewBox="0 0 24 24"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+                    VinnoDrive
+                </a>
+                <h1 class="auth-title">Create an Account</h1>
+                <p class="auth-sub">Start with free global deduplication</p>
             </div>
-            
-            <div class="input-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="Create a strong password" required>
-                <div class="password-strength">
-                    <div class="password-strength-bar" id="strengthBar"></div>
+
+            {% if error %}
+            <div class="auth-error">
+                <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+                <span>{{ error }}</span>
+            </div>
+            {% endif %}
+
+            <form action="/signup" method="post">
+                <div class="form-group">
+                    <label class="form-label" for="username">Username</label>
+                    <input type="text" id="username" name="username" class="form-input" placeholder="Letters, numbers, _ or -" required autocomplete="username" autofocus>
                 </div>
-            </div>
-            
-            <button type="submit" class="btn-submit">Create Account</button>
-        </form>
-        
-        <div class="divider">
-            <span>OR</span>
-        </div>
-        
-        <div class="login-link">
-            Already have an account? <a href="/login">Login here</a>
-        </div>
 
-        <div class="back-home">
-            <a href="/">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
-                Back to Home
-            </a>
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <input type="password" id="password" name="password" class="form-input" placeholder="Minimum 6 characters" required autocomplete="new-password">
+                </div>
+
+                <button type="submit" class="btn btn-primary auth-btn">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
+                    Create Account
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                Already registered? <a href="/login">Sign in</a>
+            </div>
         </div>
     </div>
-
-    <script>
-        // Password strength indicator
-        const passwordInput = document.getElementById('password');
-        const strengthBar = document.getElementById('strengthBar');
-
-        passwordInput.addEventListener('input', function() {
-            const password = this.value;
-            let strength = 0;
-
-            if (password.length > 0) strength += 20;
-            if (password.length >= 8) strength += 20;
-            if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength += 20;
-            if (/\d/.test(password)) strength += 20;
-            if (/[^a-zA-Z0-9]/.test(password)) strength += 20;
-
-            strengthBar.style.width = strength + '%';
-
-            if (strength <= 40) {
-                strengthBar.style.background = '#f5576c';
-            } else if (strength <= 60) {
-                strengthBar.style.background = '#f093fb';
-            } else {
-                strengthBar.style.background = '#4caf50';
-            }
-        });
-    </script>
 </body>
+</html>

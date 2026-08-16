@@ -1,347 +1,294 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VinnoDrive - Cloud Storage Reimagined</title>
+    <title>VinnoDrive - High-Performance Cloud Storage</title>
+    <link rel="stylesheet" href="/static/style.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        .landing-nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow-x: hidden;
-            background: #0a0a0a;
-        }
-
-        .hero-section {
-            min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-            position: relative;
-            overflow: hidden;
+        .landing-logo {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text-primary);
             display: flex;
             align-items: center;
-            justify-content: center;
+            gap: 10px;
+            text-decoration: none;
+            letter-spacing: -0.5px;
         }
 
-        /* Animated background particles */
-        .particles {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-        }
-
-        .particle {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            animation: float 15s infinite;
-        }
-
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(0) translateX(0) scale(1);
-                opacity: 0.3;
-            }
-            25% {
-                transform: translateY(-100px) translateX(50px) scale(1.2);
-                opacity: 0.6;
-            }
-            50% {
-                transform: translateY(-200px) translateX(-50px) scale(0.8);
-                opacity: 0.4;
-            }
-            75% {
-                transform: translateY(-100px) translateX(-100px) scale(1.1);
-                opacity: 0.5;
-            }
-        }
-
-        .hero-content {
-            position: relative;
-            z-index: 10;
+        .hero {
+            max-width: 1000px;
+            margin: 60px auto 40px;
+            padding: 0 30px;
             text-align: center;
-            color: white;
-            padding: 40px;
-            max-width: 900px;
         }
 
-        .logo {
-            font-size: 70px;
-            font-weight: 900;
-            margin-bottom: 20px;
-            text-shadow: 0 0 40px rgba(255, 255, 255, 0.5);
-            animation: pulse 3s ease-in-out infinite;
-            display: flex;
+        .hero-badge {
+            display: inline-flex;
             align-items: center;
-            justify-content: center;
-            gap: 15px;
-        }
-
-        @keyframes pulse {
-            0%, 100% {
-                transform: scale(1);
-                text-shadow: 0 0 40px rgba(255, 255, 255, 0.5);
-            }
-            50% {
-                transform: scale(1.05);
-                text-shadow: 0 0 60px rgba(255, 255, 255, 0.8);
-            }
-        }
-
-        .tagline {
-            font-size: 32px;
-            font-weight: 300;
-            margin-bottom: 20px;
-            letter-spacing: 2px;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-        }
-
-        .subtitle {
-            font-size: 18px;
-            margin-bottom: 50px;
-            opacity: 0.9;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-            line-height: 1.6;
-        }
-
-        .cta-buttons {
-            display: flex;
-            gap: 30px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 18px 50px;
-            font-size: 18px;
+            gap: 8px;
+            background: var(--accent-subtle);
+            color: var(--accent-primary);
+            border: 1px solid rgba(13, 148, 136, 0.25);
+            padding: 6px 14px;
+            border-radius: var(--radius-full);
+            font-size: 13px;
             font-weight: 600;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
+            margin-bottom: 24px;
+        }
+
+        .hero-title {
+            font-size: 52px;
+            font-weight: 800;
+            line-height: 1.15;
+            color: var(--text-primary);
+            letter-spacing: -1.5px;
+            margin-bottom: 20px;
+        }
+
+        .hero-title span {
+            color: var(--accent-primary);
+        }
+
+        .hero-sub {
+            font-size: 18px;
+            color: var(--text-secondary);
+            max-width: 680px;
+            margin: 0 auto 36px;
+            line-height: 1.6;
+            font-weight: 400;
+        }
+
+        .hero-actions {
+            display: flex;
+            justify-content: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 60px;
+        }
+
+        .hero-btn-primary {
+            background-color: var(--accent-primary);
+            color: #FFFFFF;
+            padding: 12px 28px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
             text-decoration: none;
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            gap: 10px;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            position: relative;
-            overflow: hidden;
+            gap: 8px;
+            transition: background-color 0.15s ease;
+        }
+        .hero-btn-primary:hover {
+            background-color: var(--accent-hover);
         }
 
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-
-        .btn:hover::before {
-            width: 300px;
-            height: 300px;
-        }
-
-        .btn span {
-            position: relative;
-            z-index: 1;
+        .hero-btn-secondary {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 12px 24px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
+            text-decoration: none;
             display: inline-flex;
             align-items: center;
             gap: 8px;
         }
-
-        .btn-primary {
-            background: white;
-            color: #667eea;
-            box-shadow: 0 10px 30px rgba(255, 255, 255, 0.3);
+        .hero-btn-secondary:hover {
+            background-color: var(--bg-card-hover);
         }
 
-        .btn-primary:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(255, 255, 255, 0.4);
+        /* Features Section */
+        .features-section {
+            max-width: 1200px;
+            margin: 40px auto 80px;
+            padding: 0 30px;
         }
 
-        .btn-secondary {
-            background: transparent;
-            color: white;
-            border: 3px solid white;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-
-        .btn-secondary:hover {
-            transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.1);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .features {
-            position: absolute;
-            bottom: 50px;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            gap: 50px;
-            flex-wrap: wrap;
-            padding: 0 20px;
-        }
-
-        .feature {
+        .section-header {
             text-align: center;
-            color: white;
-            opacity: 0.9;
+            margin-bottom: 48px;
         }
 
-        .feature-icon {
-            margin-bottom: 10px;
+        .section-title {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+
+        .section-desc {
+            color: var(--text-secondary);
+            font-size: 15px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 28px;
+            transition: border-color 0.15s ease, transform 0.15s ease;
+        }
+
+        .feature-card:hover {
+            border-color: var(--accent-primary);
+            transform: translateY(-2px);
+        }
+
+        .feature-icon-box {
+            width: 44px;
+            height: 44px;
+            background: var(--accent-subtle);
+            color: var(--accent-primary);
+            border-radius: var(--radius-sm);
             display: flex;
+            align-items: center;
             justify-content: center;
+            margin-bottom: 18px;
+        }
+
+        .feature-name {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-primary);
         }
 
         .feature-text {
             font-size: 14px;
-            font-weight: 600;
+            color: var(--text-secondary);
+            line-height: 1.6;
         }
 
-        .feature {
-            animation: floatFeature 3s ease-in-out infinite;
-        }
-
-        .feature:nth-child(2) {
-            animation-delay: 1s;
-        }
-
-        .feature:nth-child(3) {
-            animation-delay: 2s;
-        }
-
-        @keyframes floatFeature {
-            0%, 100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-10px);
-            }
+        /* Footer */
+        .landing-footer {
+            border-top: 1px solid var(--border-color);
+            padding: 36px 30px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 13px;
         }
 
         @media (max-width: 768px) {
-            .logo {
-                font-size: 44px;
-            }
-
-            .tagline {
-                font-size: 24px;
-            }
-
-            .subtitle {
-                font-size: 16px;
-            }
-
-            .btn {
-                padding: 15px 40px;
-                font-size: 16px;
-            }
-
-            .cta-buttons {
-                flex-direction: column;
-                align-items: center;
-                margin-bottom: 100px;
-            }
-
-            .features {
-                bottom: 30px;
-                gap: 30px;
-            }
+            .hero-title { font-size: 36px; }
+            .hero-sub { font-size: 16px; }
+            .features-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
-    <div class="hero-section">
-        <!-- Animated particles -->
-        <div class="particles" id="particles"></div>
+    <nav class="landing-nav">
+        <a href="/" class="landing-logo">
+            <svg class="icon icon-lg" style="color: var(--accent-primary);" viewBox="0 0 24 24"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+            VinnoDrive
+        </a>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <a href="/login" class="btn btn-secondary">Sign In</a>
+            <a href="/signup" class="btn btn-primary">Create Account</a>
+        </div>
+    </nav>
 
-        <!-- Main content -->
-        <div class="hero-content">
-            <div class="logo">
-                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
-                VinnoDrive
-            </div>
-            <div class="tagline">Cloud Storage Reimagined</div>
-            <div class="subtitle">
-                Store, share, and collaborate with the most intelligent cloud storage platform. 
-                Smart deduplication, lightning-fast uploads, and seamless sharing.
-            </div>
-            
-            <div class="cta-buttons">
-                <a href="/login" class="btn btn-primary">
-                    <span>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                        Login
-                    </span>
-                </a>
-                <a href="/signup" class="btn btn-secondary">
-                    <span>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
-                        Sign Up Free
-                    </span>
-                </a>
-            </div>
+    <header class="hero">
+        <div class="hero-badge">
+            <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Next-Generation Cloud Storage Architecture
+        </div>
+        <h1 class="hero-title">
+            Intelligent Storage with <span>Global Deduplication</span>
+        </h1>
+        <p class="hero-sub">
+            A minimalist, high-speed cloud drive built for speed and simplicity. Featuring in-browser code editing, live markdown previews, revision histories, and encrypted share links.
+        </p>
+        <div class="hero-actions">
+            <a href="/signup" class="hero-btn-primary">
+                Get Started Free
+                <svg class="icon" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </a>
+            <a href="/login" class="hero-btn-secondary">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>
+                Sign In to Dashboard
+            </a>
+        </div>
+    </header>
+
+    <section class="features-section">
+        <div class="section-header">
+            <h2 class="section-title">Built for Modern Productivity</h2>
+            <p class="section-desc">Engineered from the ground up for performance, security, and developer ergonomics.</p>
         </div>
 
-        <!-- Features -->
-        <div class="features">
-            <div class="feature">
-                <div class="feature-icon">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.71 1.26-1.5 1.5-2.5"/><path d="M12 15l-3-3"/><path d="M15 12l-3-3"/><path d="M9 18l3-3"/><path d="M14.5 9.5a2.12 2.12 0 0 0 0-3l-1.8-1.8a2.12 2.12 0 0 0-3 0L3.5 8.1c-.8.8-.8 2.1 0 2.8l1.8 1.8c.8.8 2.1.8 2.8 0L14.5 9.5z"/><path d="M15.5 8.5L20 4"/><path d="M18.5 11.5L21 9"/></svg>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon-box">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" x2="12" y1="22" y2="12"/></svg>
                 </div>
-                <div class="feature-text">Lightning Fast</div>
+                <div class="feature-name">Content-Addressed Storage</div>
+                <div class="feature-text">Global SHA-256 deduplication stores unique physical files once across the server while preserving complete individual user privacy.</div>
             </div>
-            <div class="feature">
-                <div class="feature-icon">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+
+            <div class="feature-card">
+                <div class="feature-icon-box">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
                 </div>
-                <div class="feature-text">Secure & Private</div>
+                <div class="feature-name">In-Browser Code & Text Studio</div>
+                <div class="feature-text">Edit code and configuration files directly in your browser with split-view live Markdown previews and automatic revision saves.</div>
             </div>
-            <div class="feature">
-                <div class="feature-icon">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+
+            <div class="feature-card">
+                <div class="feature-icon-box">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 </div>
-                <div class="feature-text">Smart Deduplication</div>
+                <div class="feature-name">Protected & Expiring Sharing</div>
+                <div class="feature-text">Generate secure public links with custom passcodes, expiration countdowns, and maximum download limits.</div>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon-box">
+                    <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+                </div>
+                <div class="feature-name">Revision History & Rollback</div>
+                <div class="feature-text">Track document evolution with immutable historical snapshots and restore any previous version with a single click.</div>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon-box">
+                    <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                </div>
+                <div class="feature-name">Remote URL Cloud Importer</div>
+                <div class="feature-text">Paste direct file links from the web to download datasets, images, and archives straight into your folders in the background.</div>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon-box">
+                    <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" x2="16.65"/></svg>
+                </div>
+                <div class="feature-name">Full-Text Content Search</div>
+                <div class="feature-text">Search directly inside text, code, logs, and document contents to locate exact line numbers and phrases in seconds.</div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <script>
-        // Generate floating particles
-        const particlesContainer = document.getElementById('particles');
-        const particleCount = 50;
-
-        for (let i = 0; i < particleCount; i++) {
-            const particle = document.createElement('div');
-            particle.className = 'particle';
-            
-            const size = Math.random() * 100 + 20;
-            particle.style.width = size + 'px';
-            particle.style.height = size + 'px';
-            particle.style.left = Math.random() * 100 + '%';
-            particle.style.top = Math.random() * 100 + '%';
-            particle.style.animationDelay = Math.random() * 15 + 's';
-            particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
-            
-            particlesContainer.appendChild(particle);
-        }
-    </script>
+    <footer class="landing-footer">
+        <div>VinnoDrive Cloud Storage Platform</div>
+    </footer>
 </body>
 </html>
