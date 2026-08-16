@@ -1,18 +1,17 @@
 import os
 import re
-import shutil
 import hashlib
-from datetime import datetime
+from datetime import datetime, timezone
 import time
 import uuid
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile, Request
 from fastapi.responses import FileResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import Column, Integer, String, Float, DateTime, create_engine, or_
+from sqlalchemy import Column, Integer, String, Float, DateTime, create_engine, func
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from passlib.context import CryptContext
+import bcrypt
 from starlette.middleware.sessions import SessionMiddleware
 import asyncio
 
@@ -27,9 +26,9 @@ SESSION_TIMEOUT_SECONDS = 1800  # 30 minutes inactivity
 # Username validation: alphanumeric + underscores + hyphens, 3-30 chars
 USERNAME_RE = re.compile(r"^[a-zA-Z0-9_\-]{3,30}$")
 
-# Rate limiting (in-memory, protected by asyncio lock)
+# Rate limiting & concurrent upload protection
 last_upload_time: dict = {}
-_rate_limit_lock = asyncio.Lock()
+_upload_lock = asyncio.Lock()
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -52,7 +51,7 @@ SessionLocal = sessionmaker(bind=engine)
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True)
-    username = Column(String, unique=True)
+    username = Column(String, unique=True, index=True)
     hashed_password = Column(String)
 
 
@@ -61,31 +60,57 @@ class UserFile(Base):
     id = Column(Integer, primary_key=True)
     filename = Column(String)
     filepath = Column(String)
-    filehash = Column(String)
-    username = Column(String)
+    filehash = Column(String, index=True)
+    username = Column(String, index=True)
     is_reference = Column(Integer, default=0)
     size = Column(Float)
-    upload_date = Column(DateTime, default=datetime.utcnow)
-    folder = Column(String, default="/")
+    upload_date = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    folder = Column(String, index=True, default="/")
     is_public = Column(Integer, default=0)
-    share_token = Column(String, unique=True, nullable=True)
+    share_token = Column(String, unique=True, nullable=True, index=True)
     download_count = Column(Integer, default=0)
+
 
 
 class SharedFile(Base):
     __tablename__ = "shared_files"
     id = Column(Integer, primary_key=True)
-    file_id = Column(Integer)
-    shared_with = Column(String)
-    shared_by = Column(String)
+    file_id = Column(Integer, index=True)
+    shared_with = Column(String, index=True)
+    shared_by = Column(String, index=True)
 
 
 Base.metadata.create_all(bind=engine)
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def hash_password(password: str) -> str:
+    """Generate bcrypt password hash safely with max 72-byte truncation."""
+    pwd_bytes = password.encode("utf-8")[:72]
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(pwd_bytes, salt).decode("utf-8")
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verify password against bcrypt hash."""
+    try:
+        return bcrypt.checkpw(plain_password.encode("utf-8")[:72], hashed_password.encode("utf-8"))
+    except Exception:
+        return False
+
 
 
 # === HELPERS ===
+
+def sanitize_filename(filename: str) -> str:
+    """Sanitize uploaded filename to prevent directory traversal and null byte injections."""
+    base = os.path.basename(filename).strip()
+    base = re.sub(r"[\x00-\x1f\x7f]", "", base)
+    base = re.sub(r'[\\/*?:"<>|]', "_", base)
+    if len(base) > 255:
+        name, ext = os.path.splitext(base)
+        base = name[: 255 - len(ext)] + ext
+    return base or "unnamed_file"
+
 
 def get_current_user(request: Request) -> str | None:
     """Returns username if session is valid and not timed out; else clears session."""
@@ -110,54 +135,62 @@ def calculate_hash(file_path: str) -> str:
 
 
 def get_actual_storage(username: str) -> int:
-    """Disk storage used: real files only (no references, no folder markers)."""
+    """Disk storage used: real files only (no references, no folder markers) via DB sum."""
     db = SessionLocal()
     try:
-        return sum(
-            f.size for f in db.query(UserFile).filter(
-                UserFile.username == username,
-                UserFile.is_reference == 0,
-                ~UserFile.filename.like(".folder_marker_%"),
-            ).all()
-        )
+        res = db.query(func.coalesce(func.sum(UserFile.size), 0)).filter(
+            UserFile.username == username,
+            UserFile.is_reference == 0,
+            ~UserFile.filename.like(".folder_marker_%"),
+        ).scalar()
+        return int(res or 0)
     finally:
         db.close()
 
 
 def get_user_space_saved(username: str) -> int:
-    """Space saved via deduplication (reference entries)."""
+    """Space saved via deduplication (reference entries) via DB sum."""
     db = SessionLocal()
     try:
-        return sum(
-            f.size for f in db.query(UserFile).filter(
-                UserFile.username == username,
-                UserFile.is_reference == 1,
-            ).all()
-        )
+        res = db.query(func.coalesce(func.sum(UserFile.size), 0)).filter(
+            UserFile.username == username,
+            UserFile.is_reference == 1,
+        ).scalar()
+        return int(res or 0)
     finally:
         db.close()
 
 
 def get_original_uploaded(username: str) -> int:
-    """Total logical size of all real files (excludes folder markers)."""
+    """Total logical size of all real files (excludes folder markers) via DB sum."""
     db = SessionLocal()
     try:
-        return sum(
-            f.size for f in db.query(UserFile).filter(
-                UserFile.username == username,
-                ~UserFile.filename.like(".folder_marker_%"),
-            ).all()
-        )
+        res = db.query(func.coalesce(func.sum(UserFile.size), 0)).filter(
+            UserFile.username == username,
+            ~UserFile.filename.like(".folder_marker_%"),
+        ).scalar()
+        return int(res or 0)
     finally:
         db.close()
 
 
 def normalize_folder_path(folder: str) -> str:
-    """Normalize to /segment/path/ and block directory traversal."""
+    """Normalize to /segment/path/ format and prevent directory traversal."""
     if not folder:
         return "/"
     folder = folder.strip().replace("\\", "/")
-    parts = [p for p in folder.split("/") if p and p != "." and p != ".."]
+    parts = []
+    for p in folder.split("/"):
+        p = p.strip()
+        if not p or p == ".":
+            continue
+        if p == "..":
+            if parts:
+                parts.pop()
+            continue
+        clean_p = re.sub(r'[\\/*?:"<>|]', "", p)
+        if clean_p:
+            parts.append(clean_p)
     if not parts:
         return "/"
     return "/" + "/".join(parts) + "/"
@@ -206,7 +239,7 @@ async def signup(request: Request, username: str = Form(...), password: str = Fo
                 "request": request,
                 "error": "Username already taken."
             })
-        db.add(User(username=username, hashed_password=pwd_context.hash(password)))
+        db.add(User(username=username, hashed_password=hash_password(password)))
         db.commit()
         return RedirectResponse("/login", status_code=303)
     finally:
@@ -218,7 +251,7 @@ async def login(request: Request, username: str = Form(...), password: str = For
     db = SessionLocal()
     try:
         user = db.query(User).filter(User.username == username.strip()).first()
-        if not user or not pwd_context.verify(password, user.hashed_password):
+        if not user or not verify_password(password, user.hashed_password):
             return templates.TemplateResponse("login.html", {
                 "request": request,
                 "error": "Wrong username or password."
@@ -230,8 +263,9 @@ async def login(request: Request, username: str = Form(...), password: str = For
         db.close()
 
 
+
 @app.get("/dashboard")
-async def dashboard(request: Request):
+async def dashboard(request: Request, status: str | None = None, error: str | None = None):
     username = get_current_user(request)
     if not username:
         return RedirectResponse("/login")
@@ -247,14 +281,21 @@ async def dashboard(request: Request):
             if shared_with_me_ids else []
         )
 
+        # Batch query SharedFile to eliminate N+1 query loop
         shared_by_me = []
-        for file in own_files:
-            recipients = db.query(SharedFile).filter(SharedFile.file_id == file.id).all()
-            if recipients:
-                shared_by_me.append({
-                    "file": file,
-                    "shared_with": [r.shared_with for r in recipients],
-                })
+        own_file_ids = [f.id for f in own_files]
+        if own_file_ids:
+            all_shared = db.query(SharedFile).filter(SharedFile.file_id.in_(own_file_ids)).all()
+            shares_map = {}
+            for s in all_shared:
+                shares_map.setdefault(s.file_id, []).append(s.shared_with)
+            
+            for file in own_files:
+                if file.id in shares_map:
+                    shared_by_me.append({
+                        "file": file,
+                        "shared_with": shares_map[file.id],
+                    })
 
         actual_used = get_actual_storage(username)
         original_uploaded = get_original_uploaded(username)
@@ -275,6 +316,8 @@ async def dashboard(request: Request):
         "savings_percent": savings_percent,
         "quota_bytes": USER_QUOTA_BYTES,
         "quota_mb": 10,
+        "status_msg": status,
+        "error_msg": error,
     })
 
 
@@ -287,10 +330,9 @@ async def upload(request: Request, folder: str = Form("/"), files: list[UploadFi
     if not files or all(not f.filename for f in files):
         return JSONResponse({"results": [], "error": "No files selected."}, status_code=400)
 
-    # Rate limiting — async-safe
-    now = time.time()
-    async with _rate_limit_lock:
-        # Purge stale entries
+    # Protect upload quota calculation and rate limiting with lock
+    async with _upload_lock:
+        now = time.time()
         stale = [u for u, t in last_upload_time.items() if now - t > 60]
         for u in stale:
             del last_upload_time[u]
@@ -298,103 +340,104 @@ async def upload(request: Request, folder: str = Form("/"), files: list[UploadFi
             return JSONResponse({"results": [], "error": "Too many uploads! Wait a moment."}, status_code=429)
         last_upload_time[username] = now
 
-    folder = normalize_folder_path(folder)
-    current_used = get_actual_storage(username)
-    new_original_size = 0
-    temp_files = []
+        folder = normalize_folder_path(folder)
+        current_used = get_actual_storage(username)
+        new_original_size = 0
+        temp_files = []
 
-    try:
-        seen_batch_hashes: set = set()
+        try:
+            seen_batch_hashes: set = set()
 
-        for file in files:
-            if not file.filename:
-                continue
+            for file in files:
+                if not file.filename:
+                    continue
 
-            # Read into memory first, then check size before writing to disk
-            content = await file.read()
-            file_size = len(content)
+                safe_name = sanitize_filename(file.filename)
+                content = await file.read()
+                file_size = len(content)
 
-            if file_size > MAX_SINGLE_FILE_BYTES:
-                return JSONResponse(
-                    {"results": [], "error": f"'{file.filename}' exceeds the 5 MB per-file limit."},
-                    status_code=400,
-                )
+                if file_size > MAX_SINGLE_FILE_BYTES:
+                    return JSONResponse(
+                        {"results": [], "error": f"'{safe_name}' exceeds the 5 MB per-file limit."},
+                        status_code=400,
+                    )
 
-            temp_path = os.path.join(UPLOAD_FOLDER, f"temp_{uuid.uuid4()}_{file.filename}")
-            with open(temp_path, "wb") as f:
-                f.write(content)
+                temp_path = os.path.join(UPLOAD_FOLDER, f"temp_{uuid.uuid4()}_{safe_name}")
+                with open(temp_path, "wb") as f:
+                    f.write(content)
 
-            file_hash = calculate_hash(temp_path)
+                file_hash = calculate_hash(temp_path)
 
+                db = SessionLocal()
+                try:
+                    existing_user_file = db.query(UserFile).filter(
+                        UserFile.filehash == file_hash,
+                        UserFile.username == username,
+                        UserFile.is_reference == 0,
+                    ).first()
+                    if not existing_user_file and file_hash not in seen_batch_hashes:
+                        new_original_size += file_size
+                        seen_batch_hashes.add(file_hash)
+                finally:
+                    db.close()
+
+                temp_files.append((temp_path, safe_name, file_hash, file_size))
+
+            if current_used + new_original_size > USER_QUOTA_BYTES:
+                for temp_path, *_ in temp_files:
+                    if os.path.exists(temp_path):
+                        os.remove(temp_path)
+                return JSONResponse({"results": [], "error": "Storage quota exceeded (10 MB limit)."}, status_code=400)
+
+            results = []
             db = SessionLocal()
             try:
-                existing_user_file = db.query(UserFile).filter(
-                    UserFile.filehash == file_hash,
-                    UserFile.username == username,
-                    UserFile.is_reference == 0,
-                ).first()
-                # Only count toward quota if it's a brand-new file for this user
-                if not existing_user_file and file_hash not in seen_batch_hashes:
-                    new_original_size += file_size
-                    seen_batch_hashes.add(file_hash)
+                for temp_path, filename, file_hash, file_size in temp_files:
+                    existing_user_file = db.query(UserFile).filter(
+                        UserFile.filehash == file_hash,
+                        UserFile.username == username,
+                        UserFile.is_reference == 0,
+                    ).first()
+
+                    if existing_user_file:
+                        if os.path.exists(temp_path):
+                            os.remove(temp_path)
+                        filepath = existing_user_file.filepath
+                        message = "Duplicate (you already uploaded this file)"
+                        is_ref = 1
+                    else:
+                        final_path = os.path.join(UPLOAD_FOLDER, f"{username}_{file_hash}")
+                        os.replace(temp_path, final_path)
+                        filepath = final_path
+                        message = "Uploaded successfully"
+                        is_ref = 0
+
+
+                    entry = UserFile(
+                        filename=filename,
+                        filepath=filepath,
+                        filehash=file_hash,
+                        username=username,
+                        is_reference=is_ref,
+                        size=file_size,
+                        folder=folder,
+                        is_public=0,
+                        download_count=0,
+                    )
+                    db.add(entry)
+                    db.commit()
+                    db.refresh(entry)
+                    results.append({"filename": filename, "message": message})
             finally:
                 db.close()
 
-            temp_files.append((temp_path, file.filename, file_hash, file_size))
+            return JSONResponse({"results": results})
 
-        if current_used + new_original_size > USER_QUOTA_BYTES:
+        except Exception as e:
             for temp_path, *_ in temp_files:
                 if os.path.exists(temp_path):
                     os.remove(temp_path)
-            return JSONResponse({"results": [], "error": "Storage quota exceeded (10 MB limit)."}, status_code=400)
-
-        results = []
-        db = SessionLocal()
-        try:
-            for temp_path, filename, file_hash, file_size in temp_files:
-                existing_user_file = db.query(UserFile).filter(
-                    UserFile.filehash == file_hash,
-                    UserFile.username == username,
-                    UserFile.is_reference == 0,
-                ).first()
-
-                if existing_user_file:
-                    os.remove(temp_path)
-                    filepath = existing_user_file.filepath
-                    message = "Duplicate (you already uploaded this file)"
-                    is_ref = 1
-                else:
-                    final_path = os.path.join(UPLOAD_FOLDER, f"{username}_{file_hash}")
-                    os.rename(temp_path, final_path)
-                    filepath = final_path
-                    message = "Uploaded successfully"
-                    is_ref = 0
-
-                entry = UserFile(
-                    filename=filename,
-                    filepath=filepath,
-                    filehash=file_hash,
-                    username=username,
-                    is_reference=is_ref,
-                    size=file_size,
-                    folder=folder,
-                    is_public=0,
-                    download_count=0,
-                )
-                db.add(entry)
-                db.commit()
-                db.refresh(entry)
-                results.append({"filename": filename, "message": message})
-        finally:
-            db.close()
-
-        return JSONResponse({"results": results})
-
-    except Exception as e:
-        for temp_path, *_ in temp_files:
-            if os.path.exists(temp_path):
-                os.remove(temp_path)
-        return JSONResponse({"results": [], "error": f"Upload failed: {str(e)}"}, status_code=500)
+            return JSONResponse({"results": [], "error": f"Upload failed: {str(e)}"}, status_code=500)
 
 
 @app.get("/download/{file_id}")
@@ -419,6 +462,10 @@ async def download(file_id: int, request: Request):
 
         if not file.filepath or not os.path.exists(file.filepath):
             raise HTTPException(404, detail="File not available on disk.")
+
+        # Increment download count
+        file.download_count += 1
+        db.commit()
 
         return FileResponse(file.filepath, filename=file.filename)
     finally:
@@ -476,30 +523,31 @@ async def share_with_user(request: Request, file_id: int = Form(...), target_use
     if not username:
         return RedirectResponse("/login")
 
+    target_username = target_username.strip()
     db = SessionLocal()
     try:
         file = db.query(UserFile).filter(UserFile.id == file_id, UserFile.username == username).first()
         if not file:
-            return RedirectResponse("/dashboard#my-files")
+            return RedirectResponse("/dashboard?error=File+not+found#my-files", status_code=303)
 
         if not db.query(User).filter(User.username == target_username).first():
-            return RedirectResponse("/dashboard#my-files")
+            return RedirectResponse("/dashboard?error=User+'" + target_username + "'+does+not+exist#my-files", status_code=303)
 
         if target_username == username:
-            return RedirectResponse("/dashboard#my-files")
+            return RedirectResponse("/dashboard?error=Cannot+share+file+with+yourself#my-files", status_code=303)
 
         if db.query(SharedFile).filter(
             SharedFile.file_id == file_id,
             SharedFile.shared_with == target_username,
         ).first():
-            return RedirectResponse("/dashboard#my-files")
+            return RedirectResponse("/dashboard?error=File+already+shared+with+'" + target_username + "'#my-files", status_code=303)
 
         db.add(SharedFile(file_id=file_id, shared_with=target_username, shared_by=username))
         db.commit()
     finally:
         db.close()
 
-    return RedirectResponse("/dashboard#my-files", status_code=303)
+    return RedirectResponse("/dashboard?status=File+shared+successfully+with+'" + target_username + "'#my-files", status_code=303)
 
 
 @app.post("/create_folder")
@@ -510,11 +558,11 @@ async def create_folder(request: Request, folder_name: str = Form(...)):
 
     folder_name = folder_name.strip()
     if not folder_name:
-        return RedirectResponse("/dashboard#my-files", status_code=303)
+        return RedirectResponse("/dashboard?error=Folder+name+cannot+be+empty#my-files", status_code=303)
 
     full_path = normalize_folder_path(folder_name)
     if full_path == "/":
-        return RedirectResponse("/dashboard#my-files", status_code=303)
+        return RedirectResponse("/dashboard?error=Invalid+folder+name#my-files", status_code=303)
 
     db = SessionLocal()
     try:
@@ -525,7 +573,7 @@ async def create_folder(request: Request, folder_name: str = Form(...)):
         ).first()
 
         if existing:
-            return RedirectResponse("/dashboard#my-files", status_code=303)
+            return RedirectResponse("/dashboard?error=Folder+already+exists#my-files", status_code=303)
 
         folder_display_name = full_path.strip("/").split("/")[-1]
         db.add(UserFile(
@@ -543,7 +591,62 @@ async def create_folder(request: Request, folder_name: str = Form(...)):
     finally:
         db.close()
 
-    return RedirectResponse("/dashboard#my-files", status_code=303)
+    return RedirectResponse("/dashboard?status=Folder+created+successfully#my-files", status_code=303)
+
+
+@app.post("/delete_folder")
+async def delete_folder(request: Request, folder_path: str = Form(...)):
+    username = get_current_user(request)
+    if not username:
+        return RedirectResponse("/login")
+
+    folder_path = normalize_folder_path(folder_path)
+    if folder_path == "/":
+        return RedirectResponse("/dashboard?error=Cannot+delete+root+folder#my-files", status_code=303)
+
+    db = SessionLocal()
+    try:
+        folder_files = db.query(UserFile).filter(
+            UserFile.username == username,
+            UserFile.folder == folder_path
+        ).all()
+
+        for file in folder_files:
+            if file.filename.startswith(".folder_marker_"):
+                db.delete(file)
+                continue
+
+            target_hash = file.filehash
+            is_ref = file.is_reference
+            file_path_on_disk = file.filepath
+
+            db.query(SharedFile).filter(SharedFile.file_id == file.id).delete()
+
+            user_ref_count = db.query(UserFile).filter(
+                UserFile.filehash == target_hash,
+                UserFile.username == username,
+            ).count()
+
+            db.delete(file)
+            db.flush()
+
+            if is_ref == 0 and user_ref_count > 1:
+                next_ref = db.query(UserFile).filter(
+                    UserFile.filehash == target_hash,
+                    UserFile.username == username,
+                ).first()
+                if next_ref:
+                    next_ref.is_reference = 0
+                    next_ref.filepath = file_path_on_disk
+
+            if is_ref == 0 and user_ref_count == 1 and file_path_on_disk and os.path.exists(file_path_on_disk):
+                os.remove(file_path_on_disk)
+
+        db.commit()
+    finally:
+        db.close()
+
+    return RedirectResponse("/dashboard?status=Folder+deleted+successfully#my-files", status_code=303)
 
 
 @app.post("/delete")
@@ -562,19 +665,16 @@ async def delete(request: Request, file_id: int = Form(...)):
         is_ref = file.is_reference
         file_path_on_disk = file.filepath
 
-        # Remove any share records for this file
         db.query(SharedFile).filter(SharedFile.file_id == file_id).delete()
 
-        # Count how many of this user's entries share the same hash (includes current file)
         user_ref_count = db.query(UserFile).filter(
             UserFile.filehash == target_hash,
             UserFile.username == username,
         ).count()
 
         db.delete(file)
-        db.flush()  # Flush deletion so subsequent queries see updated state
+        db.flush()
 
-        # If we deleted the primary physical copy, promote another copy
         if is_ref == 0 and user_ref_count > 1:
             next_ref = db.query(UserFile).filter(
                 UserFile.filehash == target_hash,
@@ -586,7 +686,6 @@ async def delete(request: Request, file_id: int = Form(...)):
 
         db.commit()
 
-        # Delete the physical file only if this was the sole copy
         if is_ref == 0 and user_ref_count == 1 and file_path_on_disk and os.path.exists(file_path_on_disk):
             os.remove(file_path_on_disk)
     finally:
@@ -621,17 +720,15 @@ async def bulk_delete(request: Request):
 
             db.query(SharedFile).filter(SharedFile.file_id == file_id).delete()
 
-            # Count before deletion (includes current file)
             user_ref_count = db.query(UserFile).filter(
                 UserFile.filehash == target_hash,
                 UserFile.username == username,
             ).count()
 
             db.delete(file)
-            db.flush()  # Flush so later iterations see accurate counts
+            db.flush()
             deleted_count += 1
 
-            # Promote another copy if we deleted the primary
             if is_ref == 0 and user_ref_count > 1:
                 next_ref = db.query(UserFile).filter(
                     UserFile.filehash == target_hash,
@@ -641,7 +738,6 @@ async def bulk_delete(request: Request):
                     next_ref.is_reference = 0
                     next_ref.filepath = file_path_on_disk
 
-            # Delete from disk only if sole copy
             if is_ref == 0 and user_ref_count == 1 and file_path_on_disk and os.path.exists(file_path_on_disk):
                 os.remove(file_path_on_disk)
 
@@ -730,7 +826,6 @@ async def preview_file(file_id: int, request: Request):
         elif file_ext in ["mp4", "webm", "mov"]:
             file_type = "video"
         elif file_ext in ["mp3", "wav", "ogg", "flac"]:
-            # ogg is audio-only; video ogg is extremely rare — keep audio
             file_type = "audio"
 
         return JSONResponse({

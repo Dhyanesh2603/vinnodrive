@@ -1,52 +1,49 @@
+/* VinnoDrive - Shared Core Styles */
+:root {
+    --bg-primary: #f5f7fa;
+    --bg-secondary: #ffffff;
+    --bg-card: #ffffff;
+    --text-primary: #2d3748;
+    --text-secondary: #718096;
+    --border-color: #e2e8f0;
+    --accent-primary: #667eea;
+    --accent-secondary: #764ba2;
+    --success: #48bb78;
+    --danger: #f56565;
+    --warning: #ed8936;
+    --info: #4299e1;
+}
+
+[data-theme="dark"] {
+    --bg-primary: #1a202c;
+    --bg-secondary: #2d3748;
+    --bg-card: #2d3748;
+    --text-primary: #f7fafc;
+    --text-secondary: #cbd5e0;
+    --border-color: #4a5568;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
 body {
-    font-family: Arial, sans-serif;
-    background: #f0f2f5;
-}
-
-header {
-    background: #4a90e2;
-    color: white;
-    padding: 15px;
-    text-align: center;
-}
-
-.container {
-    max-width: 800px;
-    background: white;
-    margin: 30px auto;
-    padding: 20px;
-    border-radius: 8px;
-}
-
-button, .btn {
-    background: #4a90e2;
-    color: white;
-    padding: 8px 14px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.upload-more {
-    display: inline-block;
-    margin-top: 10px;
-}
-
-ul.file-list {
-    list-style: none;
+    margin: 0;
     padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
 }
 
-ul.file-list li {
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
-}
-
-ul.file-list li.duplicate {
-    background: #fff3cd;
-}
-
-progress {
-    width: 100%;
-    margin-top: 10px;
+.icon {
+    width: 1.1em;
+    height: 1.1em;
+    vertical-align: -0.15em;
+    display: inline-block;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
