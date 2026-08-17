@@ -131,6 +131,46 @@ class SharedFile(Base):
 Base.metadata.create_all(bind=engine)
 
 
+def _migrate_database_schema(eng):
+    """Automatically ensure newly added columns exist in existing database tables."""
+    from sqlalchemy import text
+    try:
+        with eng.connect() as conn:
+            user_cols = {
+                "is_admin": "INTEGER DEFAULT 0",
+                "custom_quota_bytes": "INTEGER DEFAULT 10485760",
+                "api_key": "VARCHAR",
+                "totp_secret": "VARCHAR",
+                "totp_enabled": "INTEGER DEFAULT 0",
+            }
+            file_cols = {
+                "share_password": "VARCHAR",
+                "share_expires_at": "DATETIME",
+                "share_max_downloads": "INTEGER",
+                "download_count": "INTEGER DEFAULT 0",
+                "is_starred": "INTEGER DEFAULT 0",
+                "tags": "VARCHAR DEFAULT ''",
+                "is_trashed": "INTEGER DEFAULT 0",
+                "trashed_at": "DATETIME",
+                "version": "INTEGER DEFAULT 1",
+            }
+            for table, cols in [("users", user_cols), ("user_files", file_cols)]:
+                try:
+                    res = conn.execute(text(f"PRAGMA table_info({table})")).fetchall()
+                    existing = {row[1] for row in res}
+                    for col_name, col_type in cols.items():
+                        if col_name not in existing:
+                            conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {col_name} {col_type}"))
+                    conn.commit()
+                except Exception:
+                    pass
+    except Exception:
+        pass
+
+
+_migrate_database_schema(engine)
+
+
 # === SECURITY & PASSWORD HELPERS ===
 
 def hash_password(password: str) -> str:
