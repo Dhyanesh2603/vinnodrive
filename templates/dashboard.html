@@ -577,9 +577,10 @@
                     <span>{{ username }}</span>
                 </div>
 
-                <a href="/logout" class="btn btn-sm btn-secondary" title="Sign Out">
+                <button type="button" class="btn btn-sm btn-secondary" title="Sign Out" onclick="openLogoutModal()" style="display: inline-flex; align-items: center; gap: 6px;">
                     <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
-                </a>
+                    Logout
+                </button>
             </div>
         </div>
     </header>
@@ -1401,7 +1402,25 @@
         </div>
     </div>
 
+    <!-- MODAL: LOGOUT CONFIRMATION -->
+    <div class="modal-overlay" id="logoutModal">
+        <div class="modal-box" style="max-width: 380px; text-align: center; padding: 28px 24px;">
+            <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--warning-bg); color: var(--warning); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;">
+                <svg class="icon icon-lg" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+            </div>
+            <h3 style="font-size: 17px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Confirm Sign Out</h3>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;">Are you sure you want to log out of VinnoDrive?</p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('logoutModal')" style="flex: 1;">Cancel</button>
+                <a href="/logout" class="btn btn-danger" style="flex: 1; text-decoration: none;">Log Out</a>
+            </div>
+        </div>
+    </div>
+
     <script>
+        function openLogoutModal() {
+            openModal('logoutModal');
+        }
         function escapeHtml(text) {
             if (!text && text !== 0) return '';
             const div = document.createElement('div');
